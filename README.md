@@ -1,9 +1,6 @@
 # IP2-Backend
 Backend of the e-commerce website
 
-# IP2-Backend
-Backend of the e-commerce website
-
 ## Contributors
 
 | ID        | Name           | Username   |
