@@ -6,7 +6,7 @@ Backend of the e-commerce website
 | ID        | Name           | Username   |
 |-----------|---------------|------------|
 | ETS0038/16 | Abel Mekonnen | bella-237 |
-| ETS0038/16 | Abel Mekonnen | bella-237 |
+| ETS0170/16 | Amira Abdurahman | ami798 |
 | ETS0038/16 | Abel Mekonnen | bella-237 |
 | ETS0038/16 | Abel Mekonnen | bella-237 |
 | ETS0038/16 | Abel Mekonnen | bella-237 |
