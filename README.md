@@ -7,8 +7,8 @@ Backend of the e-commerce website
 |-----------|-----------------------|------------|
 | ETS0038/16 | Abel Mekonnen        | bella-237 |
 | ETS0170/16 | Amira Abdurahman     | ami798 |
-| ETS0038/16 | Bemigbar Yehwalawork | Bem132833 |
-| ETS0038/16 | Betelhem Kassaye     |betelhem16 |
+| ETS0243/16 | Bemigbar Yehuwalawork | Bem132833 |
+| ETS0265/16 | Betelhem Kassaye     |betelhem16 |
 | ETS0038/16 | Abel Mekonen         | bella-237 |
 | ETS0038/16 | Abel Mekonnen        | bella-237 |
 
