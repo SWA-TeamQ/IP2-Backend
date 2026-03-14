@@ -11,6 +11,7 @@ Backend of the e-commerce website
 | ETS0265/16 | Betelhem Kassaye     |betelhem16 |
 | ETS0038/16 | Abel Mekonen         | bella-237 |
 | ETS0038/16 | Abel Mekonnen        | bella-237 |
+| ETS 0240/16| Bekam Yoseph         | bekam-bit |
 
 
 
