@@ -25,10 +25,26 @@ Backend API for the **ShopLight** e-commerce platform built with **PHP**
 
 A lightweight, secure and well-organized **RESTful API** powering the ShopLight e-commerce website.
 
-Handles user authentication, product catalog, shopping car and order processing.
+The goal of this project is to implement a clean and structured backend system that handles user management, product operations, and order processing while following real-world backend development practices.
+
+This project is a continuation of our frontend application and focuses on integrating a dynamic backend using PHP and MySQL.
 
 **Frontend Repository:**  
 https://github.com/E-commerce-foundation/FrontEnd
+
+
+## 🎯 Project Objectives
+
+- Build a functional RESTful API using PHP
+
+- Implement secure user authentication
+
+- Manage products, carts, and orders
+
+- Apply best practices in backend structure and security
+
+- Integrate seamlessly with the existing frontend
+
 
 ## ✨ Core Features
 
