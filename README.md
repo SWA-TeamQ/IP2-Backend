@@ -57,6 +57,26 @@ https://github.com/E-commerce-foundation/FrontEnd
 - SQL Injection protection (prepared statements)
 - CORS support for frontend integration
 
+
+## 🗄️ Database Design (Planned)
+
+The system will use a relational database (MySQL/MariaDB) with the following main tables:
+
+- users
+- products
+- carts
+- cart_items
+- orders
+- order_items
+
+
+## 🔐 Security Measures
+
+- Prepared statements to prevent SQL injection
+- Input validation and sanitization
+- Authentication using JWT or sessions
+
+
 ## 🛠️ Tech Stack
 
 - **Language:** PHP 8.1+
