@@ -5,6 +5,50 @@ require_once __DIR__ . '/../models/Product.model.php';
 
 class ProductRepository
 {
+	private function mapRowToProductData($row)
+	{
+		if (isset($row['image'])) {
+			$row['images'] = $row['image'] ? array($row['image']) : array();
+		}
+
+		if (!isset($row['createdAt']) && isset($row['created_at'])) {
+			$row['createdAt'] = $row['created_at'];
+		}
+
+		return $row;
+	}
+
+	private function getProductImage($data)
+	{
+		if (isset($data['images']) && is_array($data['images']) && !empty($data['images'])) {
+			return $data['images'][0];
+		}
+
+		if (isset($data['images']) && is_string($data['images']) && $data['images'] !== '') {
+			return $data['images'];
+		}
+
+		if (isset($data['image'])) {
+			return $data['image'];
+		}
+
+		return null;
+	}
+
+	private function getProductDetails($data)
+	{
+		$details = isset($data['details']) && is_array($data['details']) ? $data['details'] : array();
+
+		return array(
+			'category' => isset($details['category']) ? $details['category'] : (isset($data['category']) ? $data['category'] : null),
+			'brand' => isset($details['brand']) ? $details['brand'] : (isset($data['brand']) ? $data['brand'] : null),
+			'price' => isset($details['price']) ? $details['price'] : (isset($data['price']) ? $data['price'] : 0),
+			'salePrice' => isset($details['salePrice']) ? $details['salePrice'] : (isset($data['salePrice']) ? $data['salePrice'] : null),
+			'rating' => isset($details['rating']) ? $details['rating'] : (isset($data['rating']) ? $data['rating'] : null),
+			'stock' => isset($details['stock']) ? $details['stock'] : (isset($data['stock']) ? $data['stock'] : 0)
+		);
+	}
+
 	// Main list used on shop page.
 	public function getAllProducts()
 	{
@@ -12,7 +56,7 @@ class ProductRepository
 		$products = array();
 
 		foreach ($rows as $row) {
-			$products[] = new Product($row);
+			$products[] = new Product($this->mapRowToProductData($row));
 		}
 
 		return $products;
@@ -28,21 +72,24 @@ class ProductRepository
 			array(':id' => $id)
 		);
 
-		return $row ? new Product($row) : null;
+		return $row ? new Product($this->mapRowToProductData($row)) : null;
 	}
 
 	public function createProduct($data)
 	{
+		$details = $this->getProductDetails($data);
+		$image = $this->getProductImage($data);
+
 		db_execute(
 			"INSERT INTO products (name, description, price, stock, image, category, created_at)
 			 VALUES (:name, :description, :price, :stock, :image, :category, NOW())",
 			array(
 				':name' => $data['name'],
 				':description' => isset($data['description']) ? $data['description'] : '',
-				':price' => isset($data['price']) ? $data['price'] : 0,
-				':stock' => isset($data['stock']) ? $data['stock'] : 0,
-				':image' => isset($data['image']) ? $data['image'] : null,
-				':category' => isset($data['category']) ? $data['category'] : null
+				':price' => $details['price'],
+				':stock' => $details['stock'],
+				':image' => $image,
+				':category' => $details['category']
 			)
 		);
 
@@ -52,6 +99,9 @@ class ProductRepository
 	// Returns true only when a row actually changed.
 	public function updateProduct($id, $data)
 	{
+		$details = $this->getProductDetails($data);
+		$image = $this->getProductImage($data);
+
 		return db_execute(
 			"UPDATE products
 			 SET name = :name,
@@ -64,10 +114,10 @@ class ProductRepository
 			array(
 				':name' => $data['name'],
 				':description' => isset($data['description']) ? $data['description'] : '',
-				':price' => isset($data['price']) ? $data['price'] : 0,
-				':stock' => isset($data['stock']) ? $data['stock'] : 0,
-				':image' => isset($data['image']) ? $data['image'] : null,
-				':category' => isset($data['category']) ? $data['category'] : null,
+				':price' => $details['price'],
+				':stock' => $details['stock'],
+				':image' => $image,
+				':category' => $details['category'],
 				':id' => $id
 			)
 		) > 0;
