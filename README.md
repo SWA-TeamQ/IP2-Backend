@@ -9,7 +9,7 @@ Backend of the e-commerce website
 | ETS0170/16 | Amira Abdurahman     | ami798 |
 | ETS0243/16 | Bemigbar Yehuwalawork | Bem132833 |
 | ETS0265/16 | Betelhem Kassaye     |betelhem16 |
-| ETS0038/16 | Barok Yeshiber         | Barok-y |
+| ETS0224/16 | Barok Yeshiber         | Barok-y |
 | ETS 0240/16| Bekam Yoseph         | bekam-bit |
 
 
@@ -60,7 +60,7 @@ https://github.com/E-commerce-foundation/FrontEnd
 
 ## 🗄️ Database Design (Planned)
 
-The system will use a relational database (MySQL/MariaDB) with the following main tables:
+The system will use a relational database (MySQL) with the following main tables:
 
 - users
 - products
@@ -80,7 +80,7 @@ The system will use a relational database (MySQL/MariaDB) with the following mai
 ## 🛠️ Tech Stack
 
 - **Language:** PHP 8.1+
-- **Database:** MySQL / MariaDB
+- **Database:** MySQL
 - **Authentication:** JWT (recommended) or Session-based
 - **API Style:** RESTful JSON
 
