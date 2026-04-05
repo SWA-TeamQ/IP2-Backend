@@ -37,6 +37,7 @@ class AuthController {
         ]);
 
         echo json_encode(["user" => ["id" => $userId, "email" => $data['email']]]);
+        
     }
 
     public function login() {
@@ -57,5 +58,18 @@ class AuthController {
             http_response_code(401);
             echo json_encode(["error" => ["message" => "Invalid credentials"]]);
         }
+    }
+}
+
+<?php
+// ... imports ...
+// this is for just testing purpose
+class AuthController {
+    public function register() {
+        // Just a test response
+        echo json_encode([
+            "status" => "success",
+            "message" => "The API is alive !"
+        ]);
     }
 }
