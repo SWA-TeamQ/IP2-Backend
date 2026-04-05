@@ -37,6 +37,18 @@ class AuthController {
         ]);
 
         echo json_encode(["user" => ["id" => $userId, "email" => $data['email']]]);
+
+        #just for testing 
+        <?php
+class AuthController {
+    public function register() {
+        header('Content-Type: application/json');
+        echo json_encode([
+            "message" => "Connection Successful! "
+        ]);
+        exit;
+    }
+}
         
     }
 
@@ -63,13 +75,3 @@ class AuthController {
 
 <?php
 // ... imports ...
-// this is for just testing purpose
-class AuthController {
-    public function register() {
-        // Just a test response
-        echo json_encode([
-            "status" => "success",
-            "message" => "The API is alive !"
-        ]);
-    }
-}
