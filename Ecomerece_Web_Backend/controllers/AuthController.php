@@ -36,16 +36,28 @@ class AuthController
         }
 
         // 4. Hash the Password and Save
-        $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
-        $userId = $this->userRepo->createUser([
-            'full_name' => $data['fullName'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'password' => $data['password'],
-            'role' => 'customer'
-        ]);
+        $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+        
+        try {
+            $userId = $this->userRepo->createUser([
+                'full_name' => $data['fullName'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+                'password' => $hashedPassword,
+                'role' => 'customer'
+            ]);
 
-        echo json_encode(["user" => ["id" => $userId, "email" => $data['email']]]);
+            echo json_encode([
+                "status" => "success",
+                "user" => [
+                    "id" => $userId, 
+                    "email" => $data['email']
+                ]
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => ["message" => "Registration failed: " . $e->getMessage()]]);
+        }
     }
 
     public function login()
@@ -64,23 +76,36 @@ class AuthController
             return;
         }
 
+    
+        if (empty($data['email']) || empty($data['password'])) {
+            http_response_code(400);
+            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            return;
+        }
 
-        $userRow = db_fetch_one("SELECT * FROM users WHERE email = :email", [':email' => $data['email']]);
+        // Use the Repository to find the user
+        $userRow = $this->userRepo->getUserByEmail($data['email']);
 
         if ($userRow && password_verify($data['password'], $userRow['password'])) {
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
             $_SESSION['user_id'] = $userRow['id'];
+            $_SESSION['user_role'] = $userRow['role'];
 
-            echo json_encode(["user" => [
-                "id" => $userRow['id'],
-                "fullName" => $userRow['full_name'],
-                "email" => $userRow['email']
-            ]]);
+            echo json_encode([
+                "status" => "success",
+                "user" => [
+                    "id" => $userRow['id'],
+                    // Use 'full_name' for consistency with DB field
+                    "fullName" => isset($userRow['fullName']) ? $userRow['fullName'] : (isset($userRow['full_name']) ? $userRow['full_name'] : null),
+                    "email" => $userRow['email'],
+                    "role" => $userRow['role']
+                ]
+            ]);
         } else {
             http_response_code(401);
-            echo json_encode(["error" => ["message" => "Invalid credentials"]]);
+            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
         }
     }
 
@@ -103,7 +128,7 @@ class AuthController
                 $params["httponly"]
             );
         }
-
+                // ...existing code...
         session_destroy();
 
         http_response_code(200);
