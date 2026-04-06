@@ -6,12 +6,8 @@ require_once __DIR__ . '/../../utils/request.php';
 
 class AuthController
 {
-class AuthController
-{
     private $userRepo;
 
-    public function __construct()
-    {
     public function __construct()
     {
         $this->userRepo = new UserRepository();
@@ -23,9 +19,9 @@ class AuthController
         $data = json_decode(file_get_contents("php://input"), true);
 
         // 2. Simple Validation
-        if (empty($data['email']) || empty($data['password'])) {
+        if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
             http_response_code(400);
-            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
             return;
         }
 
@@ -34,8 +30,9 @@ class AuthController
             return;
         }
 
+        // 4. Hash the Password and Save
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
-
+        
         try {
             $userId = $this->userRepo->createUser([
                 'full_name' => $data['fullName'],
@@ -45,27 +42,74 @@ class AuthController
                 'role' => 'customer'
             ]);
 
-        echo json_encode(["user" => ["id" => $userId, "email" => $data['email']]]);
+            echo json_encode([
+                "status" => "success",
+                "user" => [
+                    "id" => $userId, 
+                    "email" => $data['email']
+                ]
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => ["message" => "Registration failed: " . $e->getMessage()]]);
+        }
     }
 
     public function login()
     {
         $data = json_decode(file_get_contents("php://input"), true);
+        
+        if (empty($data['email']) || empty($data['password'])) {
+            http_response_code(400);
+            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            return;
+        }
 
-        $userRow = db_fetch_one("SELECT * FROM users WHERE email = :email", [':email' => $data['email']]);
+        // Use the Repository to find the user
+        $userRow = $this->userRepo->getUserByEmail($data['email']);
 
         if ($userRow && password_verify($data['password'], $userRow['password'])) {
-            $this->ensureSessionStarted();
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $_SESSION['user_id'] = $userRow['id'];
+            $_SESSION['user_role'] = $userRow['role'];
 
-            echo json_encode(["user" => [
-                "id" => $userRow['id'],
-                "fullName" => $userRow['full_name'],
-                "email" => $userRow['email']
-            ]]);
+            echo json_encode([
+                "status" => "success",
+                "user" => [
+                    "id" => $userRow['id'],
+                    // Use 'full_name' for consistency with DB field
+                    "fullName" => isset($userRow['fullName']) ? $userRow['fullName'] : (isset($userRow['full_name']) ? $userRow['full_name'] : null),
+                    "email" => $userRow['email'],
+                    "role" => $userRow['role']
+                ]
+            ]);
         } else {
             http_response_code(401);
-            echo json_encode(["error" => ["message" => "Invalid credentials"]]);
+            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
+        }
+    }
+
+    public function logout() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        session_unset();
+        session_destroy();
+        echo json_encode(["status" => "success", "message" => "Logged out successfully"]);
+    }
+
+    public function me() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (isset($_SESSION['user_id'])) {
+            $user = $this->userRepo->getUserById($_SESSION['user_id']);
+            echo json_encode(["loggedIn" => true, "user" => $user]);
+        } else {
+            echo json_encode(["loggedIn" => false]);
         }
     }
 }
