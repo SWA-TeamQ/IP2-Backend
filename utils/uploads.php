@@ -1,4 +1,6 @@
 <?php
+define("DEFAULT_ALLOWED_IMAGE_EXTENSIONS", ['jpg', 'jpeg', 'png', 'webp']);
+define("DEFAULT_MAX_IMAGE_SIZE", 5 * 1024 * 1024); // 5MB
 
 if (!function_exists('app_upload_product_image')) {
 	// Upload one product image and return the public path.
@@ -12,14 +14,14 @@ if (!function_exists('app_upload_product_image')) {
 			throw new RuntimeException('Image upload failed with error code ' . $file['error'] . '.');
 		}
 
-		$maxSize = isset($options['maxSize']) ? (int) $options['maxSize'] : 5 * 1024 * 1024;
+		$maxSize = isset($options['maxSize']) ? (int) $options['maxSize'] : DEFAULT_MAX_IMAGE_SIZE;
 		if (isset($file['size']) && (int) $file['size'] > $maxSize) {
 			throw new RuntimeException('Image is too large. Max size is 5MB.');
 		}
 
 		$allowedExtensions = isset($options['allowedExtensions'])
 			? $options['allowedExtensions']
-			: array('jpg', 'jpeg', 'png', 'webp');
+			: DEFAULT_ALLOWED_IMAGE_EXTENSIONS;
 
 		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 		if (!in_array($extension, $allowedExtensions, true)) {
@@ -56,6 +58,7 @@ if (!function_exists('app_upload_product_images')) {
 		}
 
 		$total = count($files['name']);
+        
 		for ($i = 0; $i < $total; $i++) {
 			$singleFile = array(
 				'name' => isset($files['name'][$i]) ? $files['name'][$i] : null,

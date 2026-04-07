@@ -1,0 +1,50 @@
+name: PHP CI
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.2"
+                  tools: composer
+
+            - name: Validate composer.json and composer.lock
+              if: ${{ hashFiles('Ecomerece_Web_Backend/composer.json') != '' }}
+              working-directory: Ecomerece_Web_Backend
+              run: composer validate --strict
+
+            - name: Cache Composer packages
+              if: ${{ hashFiles('Ecomerece_Web_Backend/composer.lock') != '' }}
+              id: composer-cache
+              uses: actions/cache@v4
+              with:
+                  path: Ecomerece_Web_Backend/vendor
+                  key: ${{ runner.os }}-php-${{ hashFiles('Ecomerece_Web_Backend/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-
+
+            - name: Install dependencies
+              if: ${{ hashFiles('Ecomerece_Web_Backend/composer.json') != '' }}
+              working-directory: Ecomerece_Web_Backend
+              run: composer install --prefer-dist --no-progress --no-interaction
+
+            - name: Lint PHP files
+              run: |
+                  set -e
+                  find Ecomerece_Web_Backend utils -type f -name "*.php" -print0 | while IFS= read -r -d '' file; do
+                    php -l "$file"
+                  done
