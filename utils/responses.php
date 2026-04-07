@@ -26,3 +26,5 @@ if (!function_exists('app_error_response')) {
 		);
 	}
 }
+
+?>

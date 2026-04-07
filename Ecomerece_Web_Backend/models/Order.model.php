@@ -7,13 +7,13 @@ class Order
 	public $id;
 	public $userId;
 	public $items;
-	public $createdAt;
-	public $updatedAt;
 	public $status;
 	public $subtotal;
 	public $tax;
 	public $shipping;
 	public $total;
+	public $createdAt;
+	public $updatedAt;
 
 	public function __construct($data = array())
 	{
