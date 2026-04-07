@@ -1,14 +1,17 @@
 <?php
 require_once __DIR__ . '/../repositories/UserRepository.php';
 
-class AuthController {
+class AuthController
+{
     private $userRepo;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->userRepo = new UserRepository();
     }
 
-    public function register() {
+    public function register()
+    {
         // 1. Get JSON input
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -37,30 +40,18 @@ class AuthController {
         ]);
 
         echo json_encode(["user" => ["id" => $userId, "email" => $data['email']]]);
-
-        #just for testing 
-        <?php
-class AuthController {
-    public function register() {
-        header('Content-Type: application/json');
-        echo json_encode([
-            "message" => "Connection Successful! "
-        ]);
-        exit;
-    }
-}
-        
     }
 
-    public function login() {
+    public function login()
+    {
         $data = json_decode(file_get_contents("php://input"), true);
-    
+
         $userRow = db_fetch_one("SELECT * FROM users WHERE email = :email", [':email' => $data['email']]);
 
         if ($userRow && password_verify($data['password'], $userRow['password'])) {
             session_start();
             $_SESSION['user_id'] = $userRow['id'];
-            
+
             echo json_encode(["user" => [
                 "id" => $userRow['id'],
                 "fullName" => $userRow['full_name'],
@@ -72,6 +63,3 @@ class AuthController {
         }
     }
 }
-
-<?php
-// ... imports ...
