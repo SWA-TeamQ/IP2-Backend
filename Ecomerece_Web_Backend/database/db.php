@@ -2,10 +2,10 @@
 
 // Keep DB config in one place so changing environments is easy.
 if (!defined('DB_HOST')) {
-	define('DB_HOST', '127.0.0.1');
-	define('DB_NAME', 'shoplight');
-	define('DB_USER', 'root');
-	define('DB_PASS', '');
+	define('DB_HOST', getenv("DB_HOST"));
+	define('DB_NAME', getenv("DB_NAME"));
+	define('DB_USER', getenv("DB_USERNAME"));
+	define('DB_PASS', getenv("DB_PASSWORD"));
 	define('DB_CHARSET', 'utf8mb4');
 }
 
