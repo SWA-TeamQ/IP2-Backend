@@ -16,9 +16,9 @@ class AuthController
         $data = json_decode(file_get_contents("php://input"), true);
 
         // 2. Simple Validation
-        if (empty($data['email']) || empty($data['password'])) {
+        if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
             http_response_code(400);
-            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
             return;
         }
 
@@ -49,7 +49,10 @@ class AuthController
         $userRow = db_fetch_one("SELECT * FROM users WHERE email = :email", [':email' => $data['email']]);
 
         if ($userRow && password_verify($data['password'], $userRow['password'])) {
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
             $_SESSION['user_id'] = $userRow['id'];
 
             echo json_encode(["user" => [
@@ -59,7 +62,7 @@ class AuthController
             ]]);
         } else {
             http_response_code(401);
-            echo json_encode(["error" => ["message" => "Invalid credentials"]]);
+            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
         }
     }
 }
