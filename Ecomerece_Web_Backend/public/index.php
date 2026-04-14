@@ -23,6 +23,7 @@ require_once __DIR__ . '/../repositories/UserRepository.php';
 // 4. Include your Route Files
 // As you and your team build more, you'll add 'products.php', 'cart.php', etc.
 require_once __DIR__ . '/../routes/auth.php';
+require_once __DIR__ . '/../routes/api.php';
 
 
 // 5. Default 404 Response
