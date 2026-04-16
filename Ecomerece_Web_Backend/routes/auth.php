@@ -7,20 +7,34 @@ $authController = new AuthController();
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Normalize (trim trailing slash) and allow apps hosted in subfolders.
+$normalizedUri = rtrim($uri, '/');
+if ($normalizedUri === '') {
+    $normalizedUri = '/';
+}
+
+function route_ends_with($uri, $suffix) {
+    if (function_exists('str_ends_with')) {
+        return str_ends_with($uri, $suffix);
+    }
+    $len = strlen($suffix);
+    return $len === 0 || (substr($uri, -$len) === $suffix);
+}
+
 // Route: POST /api/auth/register
-if ($uri === '/api/auth/register' && $method === 'POST') {
+if (route_ends_with($normalizedUri, '/api/auth/register') && $method === 'POST') {
     $authController->register();
     exit;
 }
 
 // Route: POST /api/auth/login
-if ($uri === '/api/auth/login' && $method === 'POST') {
+if (route_ends_with($normalizedUri, '/api/auth/login') && $method === 'POST') {
     $authController->login();
     exit;
 }
 
 // Route: POST /api/auth/logout
-if ($uri === '/api/auth/logout' && $method === 'POST') {
+if (route_ends_with($normalizedUri, '/api/auth/logout') && $method === 'POST') {
     $authController->logout();
     exit;
 }
