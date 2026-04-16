@@ -11,29 +11,29 @@ Suggested meanings:
 
 ## Coverage table
 
-| Endpoint | Scenario | Expected code | Current status | Notes |
-|---|---|---:|---|---|
-| `GET /` | Basic health ping | 200 | Planned | Should return `{ "status": "OK", "message": "API is running" }` |
-| `GET /` | Wrong method like POST | 404 or method rejection | Planned | Router only maps GET |
-| `GET /health` | Basic health ping | 200 | Planned | Should return `{ "status": "success", "message": "API working" }` |
-| `GET /health` | Wrong method like POST | 404 or method rejection | Planned | Router only maps GET |
-| `POST /api/auth/register` | Valid new user | 200 or 201 | Planned | Current controller echoes user object but does not set 201 |
-| `POST /api/auth/register` | Missing email | 400 | Planned | Code checks required fields |
-| `POST /api/auth/register` | Missing password | 400 | Planned | Code checks required fields |
-| `POST /api/auth/register` | Missing fullName | 400 | Planned | Review copy checks fullName explicitly |
-| `POST /api/auth/register` | Duplicate email | 409 | Planned | Based on repository lookup |
-| `POST /api/auth/register` | Invalid JSON body | 400 or 500 | Planned | Should ideally be 400; actual code may not handle cleanly |
-| `POST /api/auth/register` | DB unavailable | 500 | Planned | Important negative test if local DB is not configured |
-| `POST /api/auth/login` | Valid credentials | 200 | Planned | Returns user object on success |
-| `POST /api/auth/login` | Wrong password | 401 | Planned | Explicit in controller |
-| `POST /api/auth/login` | Unknown email | 401 | Planned | Explicit in controller |
-| `POST /api/auth/login` | Missing email | 400 or 500 | Planned | Code does not safely validate before DB query |
-| `POST /api/auth/login` | Missing password | 400 or 401 | Planned | Depends on runtime behavior |
-| `POST /api/auth/login` | Invalid JSON body | 400 or 500 | Planned | Should be hardened by backend |
-| `POST /api/auth/logout` | Logout with active session | 200 | Blocked | Route exists, method appears missing |
-| `POST /api/auth/logout` | Logout without session | 200 or 401 | Blocked | Contract not defined in code |
-| Any unknown route | Nonexistent endpoint | 404 | Planned | Root router and legacy public entry both define 404 behavior |
-| `OPTIONS` preflight | Browser CORS preflight | 200 | Planned | Middleware/public entry explicitly allows OPTIONS |
+| Endpoint | Scenario | Expected code | Current status | Verified date | Evidence | Notes |
+|---|---|---:|---|---|---|---|
+| `GET /api` | Basic health ping | 200 | Planned |  |  | Smoke endpoint |
+| `GET /api/health` | Basic health ping | 200 | Planned |  |  | Smoke endpoint |
+| `GET /` | Basic health ping (if root router exists) | 200 | Planned |  |  | Depends on entrypoint used |
+| `GET /health` | Basic health ping (if root router exists) | 200 | Planned |  |  | Depends on entrypoint used |
+| `POST /api/auth/register` | Valid new user | 200 or 201 | Planned |  |  | Current controller echoes user object but does not set 201 |
+| `POST /api/auth/register` | Missing email | 400 | Planned |  |  | Validation case |
+| `POST /api/auth/register` | Missing password | 400 | Planned |  |  | Validation case |
+| `POST /api/auth/register` | Missing fullName | 400 | Planned |  |  | Validation case |
+| `POST /api/auth/register` | Duplicate email | 409 | Planned |  |  | Based on repository lookup |
+| `POST /api/auth/register` | Invalid JSON body | 400 | Planned |  |  | Backend should return `Invalid JSON body` |
+| `POST /api/auth/register` | DB unavailable | 500 | Planned |  |  | Important negative test if local DB is not configured |
+| `POST /api/auth/login` | Valid credentials | 200 | Planned |  |  | Returns user object on success |
+| `POST /api/auth/login` | Wrong password | 401 | Planned |  |  | Invalid credentials |
+| `POST /api/auth/login` | Unknown email | 401 | Planned |  |  | Invalid credentials |
+| `POST /api/auth/login` | Missing email | 400 | Planned |  |  | Validation case |
+| `POST /api/auth/login` | Missing password | 400 | Planned |  |  | Validation case |
+| `POST /api/auth/login` | Invalid JSON body | 400 | Planned |  |  | Backend should return `Invalid JSON body` |
+| `POST /api/auth/logout` | Logout after login | 200 | Planned |  |  | Should clear session and return `{ \"message\": \"Logged out\" }` |
+| `POST /api/auth/logout` | Logout without session | 200 | Planned |  |  | Current implementation logs out regardless |
+| Any unknown route | Nonexistent endpoint | 404 | Planned |  |  | Entry point fallback returns `NOT_FOUND` payload |
+| `OPTIONS` preflight | Browser CORS preflight | 200 | Planned |  |  | Browser-driven behavior |
 
 ## Minimum coverage goal for Team E
 
