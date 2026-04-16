@@ -39,7 +39,7 @@ Error:
 
 ### Current backend reality
 
-- Root endpoints return simple payloads with `status` and `message`
+- Root/health endpoints may return simple payloads with `status` and `message` depending on which entrypoint is used
 - Auth endpoints return `user` directly on success
 - Auth error payloads currently use `error.message` only
 
@@ -47,15 +47,26 @@ Result:
 
 - overall response envelope consistency: `Mismatch`
 
+## Entrypoint clarification (important for QA)
+
+This repo currently has more than one possible "entrypoint" pattern:
+
+- Root router style (previous routing skeleton): `public/index.php`
+- Active legacy entrypoint style: `Ecomerece_Web_Backend/public/index.php`
+
+Team E should agree with the backend team which one is authoritative for testing.
+
 ## Endpoint contract matrix
 
 | Endpoint | Contract expectation | Local backend observation | Result | Team E action |
 |---|---|---|---|---|
 | `GET /` | Not explicitly defined in contract | Exists and returns API-running message | Partial | Keep as smoke/health check |
 | `GET /health` | Not explicitly defined in contract | Exists and returns API-working message | Partial | Keep as smoke/health check |
+| `GET /api` | Not explicitly defined in contract | Exists as a smoke endpoint in the active entrypoint flow | Partial | Use for smoke testing |
+| `GET /api/health` | Not explicitly defined in contract | Exists as a smoke endpoint in the active entrypoint flow | Partial | Use for smoke testing |
 | `POST /api/auth/register` | Returns `success`, `data.user`, and normalized shape | Appears to return `{ "user": { ... } }` only | Mismatch | Document actual payload and recommend normalization |
 | `POST /api/auth/login` | Returns `success`, `data.accessToken`, `data.user` | Appears to return only `user`, with session-based login | Mismatch | Flag that frontend expecting JWT will not match current backend |
-| `POST /api/auth/logout` | Contract mentions logout as optional invalidation | Route exists, method appears missing | Blocked | Cannot verify until backend implements method |
+| `POST /api/auth/logout` | Contract mentions logout as optional invalidation | Session-based logout exists and returns `{ "message": "Logged out" }` | Mismatch | Decide whether to keep sessions or move to JWT |
 | `POST /api/auth/forgot-password` | Contract defines endpoint | No route found | Missing | Keep in planned scope |
 | `POST /api/auth/reset-password` | Contract defines endpoint | No route found | Missing | Keep in planned scope |
 | `GET /api/me` | Contract defines protected session endpoint | No matching local route in main backend | Missing | Ask backend team whether `/api/auth/me` or `/api/me` is target |
@@ -82,7 +93,7 @@ Result:
 1. Auth appears session-based in code, but contract says JWT is recommended and login response shows `accessToken`.
 2. Error responses are not yet normalized to the documented error envelope.
 3. Most contract endpoints are still documentation-only and not yet wired in routes.
-4. The logout route is declared but not currently backed by an observable controller method.
+4. Logout behavior exists but is not aligned with the contract response envelope.
 
 ## Questions to take to teammates
 
