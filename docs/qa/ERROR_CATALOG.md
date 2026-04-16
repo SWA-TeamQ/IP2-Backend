@@ -46,6 +46,61 @@ That means the current backend may be missing:
 
 This is a contract mismatch that should be tracked until standardized.
 
+## Concrete example payloads (copy/paste)
+
+These examples are meant to be pasted into the frontend team chat/docs so they know what to parse today.
+
+### 400 - Invalid JSON body (auth)
+
+```json
+{
+  "error": {
+    "message": "Invalid JSON body"
+  }
+}
+```
+
+### 400 - Missing required fields (register)
+
+```json
+{
+  "error": {
+    "message": "Full Name, Email, and Password are required"
+  }
+}
+```
+
+### 409 - Email already registered (register)
+
+```json
+{
+  "error": {
+    "message": "Email already registered"
+  }
+}
+```
+
+### 401 - Invalid credentials (login)
+
+```json
+{
+  "error": {
+    "message": "Invalid credentials"
+  }
+}
+```
+
+### 404 - Endpoint not found (public entrypoint fallback)
+
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "The requested endpoint does not exist."
+  }
+}
+```
+
 ## Error catalog table
 
 | Situation | Endpoint | Expected status | Current/likely payload | Frontend handling note | Contract state |
@@ -54,8 +109,8 @@ This is a contract mismatch that should be tracked until standardized.
 | Missing `fullName` on register | `POST /api/auth/register` | 400 | Review copy uses `Full Name, Email, and Password are required` | Show required-field message | Mismatch |
 | Duplicate email | `POST /api/auth/register` | 409 | `{ "error": { "message": "Email already registered" } }` | Tell user to log in instead | Mismatch |
 | Invalid credentials | `POST /api/auth/login` | 401 | `{ "error": { "message": "Invalid credentials" } }` or `Invalid email or password` | Show login failure message | Mismatch |
-| Unknown route | Any | 404 | Root router: `{ "status": "error", "message": "Route not found" }` or legacy public entry: `NOT_FOUND` payload | Show generic not found | Partial mismatch |
-| Broken logout implementation | `POST /api/auth/logout` | 500 likely | PHP/server error or fatal | Frontend should fail gracefully | Blocked |
+| Unknown route | Any | 404 | Entry point returns `{ "error": { "code": "NOT_FOUND", "message": "..." } }` | Show generic not found | Partial mismatch |
+| Logout clears session | `POST /api/auth/logout` | 200 | `{ "message": "Logged out" }` | Clear local auth state on success | Mismatch |
 | Malformed JSON | Auth endpoints | 400 or 500 | Unclear, depends on PHP warning/error path | Show generic request error | Unverified |
 | DB connection failure | Auth endpoints | 500 | PDO/server failure response | Show service unavailable/retry later | Unverified |
 | CORS/preflight issue | Browser calls | 4xx browser-level or failed request | Browser blocks request | Frontend sees network error | Unverified |
