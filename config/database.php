@@ -13,7 +13,7 @@ try {
 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // DB connected successfully, do not echo or exit here
+ 
 } catch (PDOException $e) {
     error_log("Database connection failed: " . $e->getMessage());
     die(json_encode(["status" => "error", "message" => "Database connection failed"]));
