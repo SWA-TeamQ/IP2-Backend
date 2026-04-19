@@ -27,6 +27,18 @@ class ProductService{
             return new Product($row);
         },$rows);
     }
+    public function createProduct($data) {
+    return $this->repo->create($data);
+}
+
+public function updateProduct($id, $data) {
+    return $this->repo->update($id, $data);
+}
+
+public function deleteProduct($id) {
+    return $this->repo->delete($id);
+}
+
     }
 ?>
 

@@ -29,7 +29,6 @@ class ProductController{
 
         public function show($id){
             $product = $this->service->getProductById($id);
-
             header('Content-Type: application/json');
             if(!$product){
                 http_response_code(404);
@@ -45,6 +44,30 @@ class ProductController{
                 "data" => $product
             ]);
         }
+
+    public function store() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $result = $this->service->createProduct($data);
+
+        header('Content-Type: application/json');
+        echo json_encode(["success" => $result, "message" => $result ? "Created" : "Failed"]);
+}
+
+    public function update($id) {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $result = $this->service->updateProduct($id, $data);
+
+        header('Content-Type: application/json');
+        echo json_encode(["success" => $result, "message" => $result ? "Updated" : "Update failed"]);
+    }
+
+    public function destroy($id) {
+        $result = $this->service->deleteProduct($id);
+
+        header('Content-Type: application/json');
+        echo json_encode(["success" => $result, "message" => $result ? "Deleted" : "Delete failed"]);
+}
+
 }
 
 ?>

@@ -54,6 +54,35 @@ class ProductRepository {
 
     }
 
+    public function update($id, $data) {
+    $stmt = $this->db->prepare("UPDATE products SET name=?, description=?, category=?, price=?, sell_price=? WHERE id=?");
+    return $stmt->execute([
+        $data['name'], 
+        $data['description'], 
+        $data['category'], 
+        $data['price'], 
+        $data['sell_price'], 
+        $id
+    ]);
+}
+
+    public function delete($id) {
+    $stmt = $this->db->prepare("DELETE FROM products WHERE id=?");
+    return $stmt->execute([$id]);
+}
+
+public function create($data) {
+    $stmt = $this->db->prepare("INSERT INTO products (name, description, category, price, sell_price, images) VALUES (?, ?, ?, ?, ?, ?)");
+    return $stmt->execute([
+        $data['name'], 
+        $data['description'], 
+        $data['category'], 
+        $data['price'], 
+        $data['sell_price'] ?? null,
+        $data['images'] ?? null
+    ]);
+}
+
 }
 
 ?>
