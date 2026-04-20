@@ -51,9 +51,9 @@ class AuthController
         echo json_encode([
             "status" => "success",
             "user" => [
-                "id" => $userId, 
+                "id" => $userId,
                 "email" => $data['email']
-        ]
+            ]
         ]);
         } catch (Exception $e) {
             $this->sendError(500, "Registration failed: " . $e->getMessage());
