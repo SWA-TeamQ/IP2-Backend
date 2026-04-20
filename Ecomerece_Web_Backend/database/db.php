@@ -1,13 +1,34 @@
 <?php
 
+function env_value($key, $default = null)
+{
+	$value = getenv($key);
+	if ($value !== false && $value !== '') {
+		return $value;
+	}
+
+	static $envFile = null;
+	if ($envFile === null) {
+		$envPath = __DIR__ . '/../.env';
+		$envFile = file_exists($envPath) ? parse_ini_file($envPath, false, INI_SCANNER_RAW) : array();
+	}
+
+	if (isset($envFile[$key])) {
+		return trim(trim((string) $envFile[$key]), "\"'");
+	}
+
+	return $default;
+}
+
 // Keep DB config in one place so changing environments is easy.
 if (!defined('DB_HOST')) {
-	define("DB_DIALECT", getenv("DB_DIALECT"));
-	define('DB_HOST', getenv("DB_HOST"));
-	define('DB_NAME', getenv("DB_NAME"));
-	define('DB_USER', getenv("DB_USERNAME"));
-	define('DB_PASS', getenv("DB_PASSWORD"));
-	define("DB_PORT", getenv("DB_PORT"));
+	define('DB_DIALECT', env_value('DB_DIALECT', 'mysql'));
+	define('DB_HOST', env_value('DB_HOST', '127.0.0.1'));
+	define('DB_NAME', env_value('DB_NAME', 'shoplightdb'));
+	define('DB_USER', env_value('DB_USERNAME', 'root'));
+	define('DB_PASS', env_value('DB_PASSWORD', ''));
+	define('DB_PORT', env_value('DB_PORT', '3306'));
+	define('DB_CHARSET', env_value('DB_CHARSET', 'utf8mb4'));
 }
 
 function db()
@@ -16,7 +37,7 @@ function db()
 
 	// Reuse one PDO connection per request.
 	if ($pdo === null) {
-		$dsn = DB_DIALECT . ':host=' . DB_HOST . ';dbname=' . DB_NAME . ';port=' . DB_PORT;
+		$dsn = DB_DIALECT . ':host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 		$options = array(
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

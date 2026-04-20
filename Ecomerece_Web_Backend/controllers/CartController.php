@@ -14,18 +14,28 @@ class CartController
     public function __construct()
     {
         $this->cartRepo = new CartRepository();
-        $this->productRepo = new ProductRepository(db());
+        $this->productRepo = new ProductRepository();
         $this->logFile = __DIR__ . '/../../logs/cart.log';
+    }
+
+    private function ensureSessionStarted()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
     }
 
     // GET /api/cart
     public function getCart()
     {
+        $this->ensureSessionStarted();
+
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(app_error_response('UNAUTHORIZED', 'Unauthorized'));
             return;
         }
+
         $cart = $this->cartRepo->getOrCreateCartByUserId($_SESSION['user_id']);
         http_response_code(200);
         echo json_encode(app_success_response($cart->toArray()));
@@ -35,6 +45,8 @@ class CartController
     // POST /api/cart/items
     public function addOrUpdateItem()
     {
+        $this->ensureSessionStarted();
+
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(app_error_response('UNAUTHORIZED', 'Unauthorized'));
@@ -81,6 +93,8 @@ class CartController
     // DELETE /api/cart/items/:productId
     public function removeItem($productId)
     {
+        $this->ensureSessionStarted();
+
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(app_error_response('UNAUTHORIZED', 'Unauthorized'));
