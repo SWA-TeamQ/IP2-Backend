@@ -12,17 +12,25 @@ class AuthController {
         // 1. Get JSON input
         $data = json_decode(file_get_contents("php://input"), true);
 
-        // 2. Simple Validation
+        // 2. STRICT VALIDATION (Added for project finalization)
         if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
+            $this->sendError(400, "Full Name, Email, and Password are required.");
+            return;
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->sendError(400, "Please provide a valid email address.");
+            return;
+        }
+
+        if (strlen($data['password']) < 6) {
+            $this->sendError(400, "Password must be at least 6 characters.");
             return;
         }
 
         // 3. Check if user exists
         if ($this->userRepo->getUserByEmail($data['email'])) {
-            http_response_code(409);
-            echo json_encode(["error" => ["message" => "Email already registered"]]);
+            $this->sendError(409, "Email already registered.");
             return;
         }
 
@@ -46,8 +54,7 @@ class AuthController {
                 ]
             ]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => ["message" => "Registration failed: " . $e->getMessage()]]);
+            $this->sendError(500, "Registration failed: " . $e->getMessage());
         }
     }
 
@@ -55,8 +62,7 @@ class AuthController {
         $data = json_decode(file_get_contents("php://input"), true);
         
         if (empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            $this->sendError(400, "Email and password required.");
             return;
         }
 
@@ -81,8 +87,7 @@ class AuthController {
                 ]
             ]);
         } else {
-            http_response_code(401);
-            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
+            $this->sendError(401, "Invalid email or password.");
         }
     }
 
@@ -106,5 +111,13 @@ class AuthController {
         } else {
             echo json_encode(["loggedIn" => false]);
         }
+    }
+
+    /**
+     * Helper method for consistent error responses
+     */
+    private function sendError($code, $message) {
+        http_response_code($code);
+        echo json_encode(["error" => ["message" => $message]]);
     }
 }
