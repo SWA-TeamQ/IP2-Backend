@@ -4,17 +4,13 @@ class ProductRepository {
 
     private $db;
 
-
-
-    public function __construct($db) {
+	public function __construct($db) {
 
         $this->db = $db;
 
     }
 
-
-
-    public function getAll() {
+	public function getAll() {
 
         $stmt = $this->db->prepare("SELECT * FROM products");
 
@@ -24,14 +20,13 @@ class ProductRepository {
 
     }
 
-    public function getProductsById($id){
 
-        $stmt = $this->db->prepare("SELECT * FROM products WHERE id=?");
-
+    // Returns a single product as associative array or null
+    public function getProductById($id){
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id=? LIMIT 1");
         $stmt->execute([$id]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result : null;
     }
 
     public function getProductsByName($name){
