@@ -20,10 +20,14 @@ class ProductRepository {
 
     }
 
+    public function getDB(){
+        return $this->db;
+    }
 
-    // Returns a single product as associative array or null
-    public function getProductById($id){
-        $stmt = $this->db->prepare("SELECT * FROM products WHERE id=? LIMIT 1");
+    public function getProductsById($id){
+
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id=?");
+
         $stmt->execute([$id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? $result : null;
@@ -68,7 +72,7 @@ class ProductRepository {
 
 public function create($data) {
     $stmt = $this->db->prepare("INSERT INTO products (name, description, category, price, sell_price, images) VALUES (?, ?, ?, ?, ?, ?)");
-    return $stmt->execute([
+    $success= $stmt->execute([
         $data['name'], 
         $data['description'], 
         $data['category'], 
@@ -76,6 +80,8 @@ public function create($data) {
         $data['sell_price'] ?? null,
         $data['images'] ?? null
     ]);
+
+    return $success ? $this->db->lastInsertedId() : false;
 }
 
 }
