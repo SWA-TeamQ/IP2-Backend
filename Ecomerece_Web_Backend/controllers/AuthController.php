@@ -15,18 +15,28 @@ class AuthController
 
     public function register()
     {
+        try{
         // 1. Get JSON input
         $data = json_decode(file_get_contents("php://input"), true);
 
-        // 2. Simple Validation
+        // 2. STRICT VALIDATION (Added for project finalization)
         if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
+            $this->sendError(400, "Full Name, Email, and Password are required.");
+            return;
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->sendError(400, "Please provide a valid email address.");
+            return;
+        }
+
+        if (strlen($data['password']) < 6) {
+            $this->sendError(400, "Password must be at least 6 characters.");
             return;
         }
 
         if ($this->userRepo->getUserByEmail($data['email'])) {
-            $this->jsonResponse(app_error_response('CONFLICT', 'Email already registered'), 409);
+            $this->sendError(409, "Email already registered.");
             return;
         }
 
@@ -42,16 +52,15 @@ class AuthController
                 'role' => 'customer'
             ]);
 
-            echo json_encode([
-                "status" => "success",
-                "user" => [
-                    "id" => $userId, 
-                    "email" => $data['email']
-                ]
-            ]);
+        echo json_encode([
+            "status" => "success",
+            "user" => [
+                "id" => $userId, 
+                "email" => $data['email']
+        ]
+        ]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => ["message" => "Registration failed: " . $e->getMessage()]]);
+            $this->sendError(500, "Registration failed: " . $e->getMessage());
         }
     }
 
@@ -60,13 +69,11 @@ class AuthController
         $data = json_decode(file_get_contents("php://input"), true);
         
         if (empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            $this->sendError(400, "Email and password required.");
             return;
         }
 
-        // Use the Repository to find the user
-        $userRow = $this->userRepo->getUserByEmail($data['email']);
+        $userRow = db_fetch_one("SELECT * FROM users WHERE email = :email", [':email' => $data['email']]);
 
         if ($userRow && password_verify($data['password'], $userRow['password'])) {
             if (session_status() === PHP_SESSION_NONE) {
@@ -75,19 +82,13 @@ class AuthController
             $_SESSION['user_id'] = $userRow['id'];
             $_SESSION['user_role'] = $userRow['role'];
 
-            echo json_encode([
-                "status" => "success",
-                "user" => [
-                    "id" => $userRow['id'],
-                    // Use 'full_name' for consistency with DB field
-                    "fullName" => isset($userRow['fullName']) ? $userRow['fullName'] : (isset($userRow['full_name']) ? $userRow['full_name'] : null),
-                    "email" => $userRow['email'],
-                    "role" => $userRow['role']
-                ]
-            ]);
+            echo json_encode(["user" => [
+                "id" => $userRow['id'],
+                "fullName" => $userRow['full_name'],
+                "email" => $userRow['email']
+            ]]);
         } else {
-            http_response_code(401);
-            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
+            $this->sendError(401, "Invalid email or password.");
         }
     }
 
@@ -111,5 +112,13 @@ class AuthController
         } else {
             echo json_encode(["loggedIn" => false]);
         }
+    }
+
+    /**
+     * Helper method for consistent error responses
+     */
+    private function sendError($code, $message) {
+        http_response_code($code);
+        echo json_encode(["error" => ["message" => $message]]);
     }
 }
