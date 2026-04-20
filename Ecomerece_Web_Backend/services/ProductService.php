@@ -21,11 +21,33 @@ class ProductService{
         return !empty($data) ? new Product($data[0]) : null;
     }
 
-    public function getProductByCategory($category){
-        $rows = $this->repo->getProductsByCategory($category);
-        return array_map(function($row){
-            return new Product($row);
-        },$rows);
+    public function getFilteredProducts($category, $search, $sortBy, $order) {
+        $query = "SELECT * FROM products WHERE 1=1";
+        $params = [];
+
+        if ($category) {
+            $query .= " AND category = ?";
+            $params[] = $category;
+        }
+        if ($search) {
+            $query .= " AND (name LIKE ? OR description LIKE ?)";
+            $params[] = "%$search%";
+            $params[] = "%$search%";
+        }
+
+        $allowedSort = ['name', 'price', 'rating'];
+        $sortBy = in_array($sortBy, $allowedSort) ? $sortBy : 'name';
+        $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+
+        $query .= " ORDER BY $sortBy $order";
+        
+        $stmt = $this->repo->getDB()->prepare($query);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(function($row) {
+        return new Product($row);
+        }, $rows);
     }
     public function createProduct($data) {
     return $this->repo->create($data);

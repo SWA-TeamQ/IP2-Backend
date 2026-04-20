@@ -24,6 +24,10 @@ class ProductRepository {
 
     }
 
+    public function getDB(){
+        return $this->db;
+    }
+
     public function getProductsById($id){
 
         $stmt = $this->db->prepare("SELECT * FROM products WHERE id=?");
@@ -73,7 +77,7 @@ class ProductRepository {
 
 public function create($data) {
     $stmt = $this->db->prepare("INSERT INTO products (name, description, category, price, sell_price, images) VALUES (?, ?, ?, ?, ?, ?)");
-    return $stmt->execute([
+    $success= $stmt->execute([
         $data['name'], 
         $data['description'], 
         $data['category'], 
@@ -81,6 +85,8 @@ public function create($data) {
         $data['sell_price'] ?? null,
         $data['images'] ?? null
     ]);
+
+    return $success ? $this->db->lastInsertedId() : false;
 }
 
 }

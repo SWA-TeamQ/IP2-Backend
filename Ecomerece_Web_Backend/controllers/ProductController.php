@@ -11,46 +11,37 @@ class ProductController{
 
     public function index(){
         $category = $_GET['category'] ?? null;
-    
-            if($category){
-                $products = $this->service->getProductByCategory($category);
-            }
-            else{
-                $products = $this->service->getAllProducts();
-            }
+            $search = $_GET['search'] ?? null;
+            $sortBy = $_GET['sortBy'] ?? 'name';
+            $order = $_GET['order'] ?? 'asc';
+
+            // Pass all contract query params to the service
+            $products = $this->service->getFilteredProducts($category, $search, $sortBy, $order);
 
             header('Content-Type: application/json');
-            echo json_encode([
-                "success" => true,
-                "data" => ["items" => $products],
-                "meta" => ["total" => count($products)]
-            ]);
+            echo json_encode(["items" => $products]);
         }
 
         public function show($id){
             $product = $this->service->getProductById($id);
             header('Content-Type: application/json');
             if(!$product){
-                http_response_code(404);
-                echo json_encode([
-                    "success" => false,
-                    "error" => ["code" => "Not_Found",
-                    "message" => "Product not found by this id"]
-                ]);
-                return;
+                $this->sendError("NOT_FOUND", "Product not found by this id", 404);
+                    return;
             }
-            return json_encode([
-                "success" => true,
-                "data" => $product
-            ]);
+            echo json_encode(["item" => $product]);
         }
 
     public function store() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $result = $this->service->createProduct($data);
+        $id = $this->service->createProduct($data); // Ensure repo returns lastInsertId
 
-        header('Content-Type: application/json');
-        echo json_encode(["success" => $result, "message" => $result ? "Created" : "Failed"]);
+            if ($id) {
+                $newProduct = $this->service->getProductById($id);
+                echo json_encode(["item" => $newProduct]); //
+            } else {
+                $this->sendError("CREATE_FAILED", "Could not create product");
+            }
 }
 
     public function update($id) {
@@ -58,15 +49,32 @@ class ProductController{
         $result = $this->service->updateProduct($id, $data);
 
         header('Content-Type: application/json');
-        echo json_encode(["success" => $result, "message" => $result ? "Updated" : "Update failed"]);
+if ($result) {
+        $updatedProduct = $this->service->getProductById($id);
+        echo json_encode(["item" => $updatedProduct]);
+    } else {
+        $this->sendError("UPDATE_FAILED", "Could not update product");
+    }
     }
 
     public function destroy($id) {
         $result = $this->service->deleteProduct($id);
 
         header('Content-Type: application/json');
-        echo json_encode(["success" => $result, "message" => $result ? "Deleted" : "Delete failed"]);
+        echo json_encode(["ok" => (bool)$result]);
 }
+
+    private function sendError($code, $message, $statusCode = 400) {
+        http_response_code($statusCode);
+        echo json_encode([
+            "error" => [
+                "code" => $code,
+                "message" => $message,
+                "details" => (object)[]
+            ]
+        ]);
+        exit;
+    }
 
 }
 
