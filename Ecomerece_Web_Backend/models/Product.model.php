@@ -18,7 +18,11 @@ class Product
 		$rawImages = isset($data['images']) ? $data['images'] : null;
 		if (is_string($rawImages)) {
 			$decoded = json_decode($rawImages, true);
-			$this->images = is_array($decoded) ? $decoded : array();
+			if (is_array($decoded)) {
+				$this->images = $decoded;
+			} else {
+				$this->images = $rawImages !== '' ? array($rawImages) : array();
+			}
 		} elseif (is_array($rawImages)) {
 			$this->images = $rawImages;
 		} else {
