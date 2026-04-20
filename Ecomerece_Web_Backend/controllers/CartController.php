@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../repositories/CartRepository.php';
+require_once __DIR__ . '/../../utils/responses.php';
 require_once __DIR__ . '/../repositories/ProductRepository.php';
 require_once __DIR__ . '/../../utils/responses.php';
 
@@ -26,6 +27,7 @@ class CartController
             return;
         }
         $cart = $this->cartRepo->getOrCreateCartByUserId($_SESSION['user_id']);
+        http_response_code(200);
         echo json_encode(app_success_response($cart->toArray()));
         $this->logAction('getCart', $_SESSION['user_id']);
     }
@@ -65,6 +67,7 @@ class CartController
         $cart = $this->cartRepo->getOrCreateCartByUserId($_SESSION['user_id']);
         $this->cartRepo->addItem($cart->id, $data['productId'], (int)$data['quantity']);
         $cart = $this->cartRepo->getCartById($cart->id);
+        http_response_code(200);
         echo json_encode(app_success_response($cart->toArray()));
         $this->logAction('addOrUpdateItem', $_SESSION['user_id'], $data);
     }
@@ -92,6 +95,7 @@ class CartController
         $cart = $this->cartRepo->getOrCreateCartByUserId($_SESSION['user_id']);
         $this->cartRepo->removeItem($cart->id, $productId);
         $cart = $this->cartRepo->getCartById($cart->id);
+        http_response_code(200);
         echo json_encode(app_success_response($cart->toArray()));
         $this->logAction('removeItem', $_SESSION['user_id'], ['productId' => $productId]);
     }
