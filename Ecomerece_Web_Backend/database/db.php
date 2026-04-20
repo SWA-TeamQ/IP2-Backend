@@ -37,14 +37,31 @@ function db()
 
 	// Reuse one PDO connection per request.
 	if ($pdo === null) {
-		$dsn = DB_DIALECT . ':host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 		$options = array(
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 			PDO::ATTR_EMULATE_PREPARES => false
 		);
 
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+		$dialect = strtolower((string) DB_DIALECT);
+		if ($dialect === 'sqlite') {
+			$dbPath = DB_NAME;
+			if (!preg_match('/^[A-Za-z]:\\\\/', $dbPath) && strpos($dbPath, '/') !== 0 && strpos($dbPath, '\\\\') !== 0) {
+				$dbPath = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . str_replace(array('/', '\\\\'), DIRECTORY_SEPARATOR, $dbPath);
+			}
+
+			$dbDir = dirname($dbPath);
+			if (!is_dir($dbDir)) {
+				mkdir($dbDir, 0755, true);
+			}
+
+			$dsn = 'sqlite:' . $dbPath;
+			$pdo = new PDO($dsn, null, null, $options);
+			$pdo->exec('PRAGMA foreign_keys = ON');
+		} else {
+			$dsn = DB_DIALECT . ':host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
+        	$pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+		}
     }
 
     return $pdo;
