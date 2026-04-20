@@ -20,7 +20,19 @@ class AuthController
         $data = json_decode(file_get_contents("php://input"), true);
 
         // 2. STRICT VALIDATION (Added for project finalization)
+        // 2. STRICT VALIDATION (Added for project finalization)
         if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
+            $this->sendError(400, "Full Name, Email, and Password are required.");
+            return;
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->sendError(400, "Please provide a valid email address.");
+            return;
+        }
+
+        if (strlen($data['password']) < 6) {
+            $this->sendError(400, "Password must be at least 6 characters.");
             $this->sendError(400, "Full Name, Email, and Password are required.");
             return;
         }
@@ -36,6 +48,7 @@ class AuthController
         }
 
         if ($this->userRepo->getUserByEmail($data['email'])) {
+            $this->sendError(409, "Email already registered.");
             $this->sendError(409, "Email already registered.");
             return;
         }
@@ -61,6 +74,7 @@ class AuthController
         ]);
         } catch (Exception $e) {
             $this->sendError(500, "Registration failed: " . $e->getMessage());
+            $this->sendError(500, "Registration failed: " . $e->getMessage());
         }
     }
 
@@ -69,6 +83,7 @@ class AuthController
         $data = json_decode(file_get_contents("php://input"), true);
         
         if (empty($data['email']) || empty($data['password'])) {
+            $this->sendError(400, "Email and password required.");
             $this->sendError(400, "Email and password required.");
             return;
         }
@@ -88,6 +103,7 @@ class AuthController
                 "email" => $userRow['email']
             ]]);
         } else {
+            $this->sendError(401, "Invalid email or password.");
             $this->sendError(401, "Invalid email or password.");
         }
     }
