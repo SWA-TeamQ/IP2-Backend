@@ -1,131 +1,83 @@
 <?php
 
-require_once __DIR__ . '/../database/db.php';
-require_once __DIR__ . '/../models/Product.model.php';
+class ProductRepository {
 
-class ProductRepository
-{
-	private function mapRowToProductData($row)
-	{
-		if (isset($row['image'])) {
-			$row['images'] = $row['image'] ? array($row['image']) : array();
-		}
+    private $db;
 
-		if (!isset($row['createdAt']) && isset($row['created_at'])) {
-			$row['createdAt'] = $row['created_at'];
-		}
+	public function __construct($db) {
 
-		return $row;
-	}
+        $this->db = $db;
 
-	private function getProductImage($data)
-	{
-		if (isset($data['images']) && is_array($data['images']) && !empty($data['images'])) {
-			return $data['images'][0];
-		}
+    }
 
-		if (isset($data['images']) && is_string($data['images']) && $data['images'] !== '') {
-			return $data['images'];
-		}
+	public function getAll() {
 
-		if (isset($data['image'])) {
-			return $data['image'];
-		}
+        $stmt = $this->db->prepare("SELECT * FROM products");
 
-		return null;
-	}
+        $stmt->execute();
 
-	private function getProductDetails($data)
-	{
-		$details = isset($data['details']) && is_array($data['details']) ? $data['details'] : array();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		return array(
-			'category' => isset($details['category']) ? $details['category'] : (isset($data['category']) ? $data['category'] : null),
-			'brand' => isset($details['brand']) ? $details['brand'] : (isset($data['brand']) ? $data['brand'] : null),
-			'price' => isset($details['price']) ? $details['price'] : (isset($data['price']) ? $data['price'] : 0),
-			'salePrice' => isset($details['salePrice']) ? $details['salePrice'] : (isset($data['salePrice']) ? $data['salePrice'] : null),
-			'rating' => isset($details['rating']) ? $details['rating'] : (isset($data['rating']) ? $data['rating'] : null),
-			'stock' => isset($details['stock']) ? $details['stock'] : (isset($data['stock']) ? $data['stock'] : 0)
-		);
-	}
+    }
 
-	// Main list used on shop page.
-	public function getAllProducts()
-	{
-		$rows = db_fetch_all("SELECT id, name, description, price, stock, image, category, created_at AS createdAt FROM products ORDER BY created_at DESC");
-		$products = array();
 
-		foreach ($rows as $row) {
-			$products[] = new Product($this->mapRowToProductData($row));
-		}
+    // Returns a single product as associative array or null
+    public function getProductById($id){
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id=? LIMIT 1");
+        $stmt->execute([$id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result : null;
+    }
 
-		return $products;
-	}
+    public function getProductsByName($name){
 
-	public function getProductById($id)
-	{
-		$row = db_fetch_one(
-			"SELECT id, name, description, price, stock, image, category, created_at AS createdAt
-			 FROM products
-			 WHERE id = :id
-			 LIMIT 1",
-			array(':id' => $id)
-		);
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE name = ?");
 
-		return $row ? new Product($this->mapRowToProductData($row)) : null;
-	}
+        $stmt->execute([$name]);
 
-	public function createProduct($data)
-	{
-		$details = $this->getProductDetails($data);
-		$image = $this->getProductImage($data);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		db_execute(
-			"INSERT INTO products (name, description, price, stock, image, category, created_at)
-			 VALUES (:name, :description, :price, :stock, :image, :category, NOW())",
-			array(
-				':name' => $data['name'],
-				':description' => isset($data['description']) ? $data['description'] : '',
-				':price' => $details['price'],
-				':stock' => $details['stock'],
-				':image' => $image,
-				':category' => $details['category']
-			)
-		);
+    }
 
-		return db_last_insert_id();
-	}
+    public function getProductsByCategory($category){
 
-	// Returns true only when a row actually changed.
-	public function updateProduct($id, $data)
-	{
-		$details = $this->getProductDetails($data);
-		$image = $this->getProductImage($data);
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE category=?");
 
-		return db_execute(
-			"UPDATE products
-			 SET name = :name,
-				 description = :description,
-				 price = :price,
-				 stock = :stock,
-				 image = :image,
-				 category = :category
-			 WHERE id = :id",
-			array(
-				':name' => $data['name'],
-				':description' => isset($data['description']) ? $data['description'] : '',
-				':price' => $details['price'],
-				':stock' => $details['stock'],
-				':image' => $image,
-				':category' => $details['category'],
-				':id' => $id
-			)
-		) > 0;
-	}
+        $stmt->execute([$category]);
 
-	public function deleteProduct($id)
-	{
-		return db_execute("DELETE FROM products WHERE id = :id", array(':id' => $id)) > 0;
-	}
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    }
+
+    public function update($id, $data) {
+    $stmt = $this->db->prepare("UPDATE products SET name=?, description=?, category=?, price=?, sell_price=? WHERE id=?");
+    return $stmt->execute([
+        $data['name'], 
+        $data['description'], 
+        $data['category'], 
+        $data['price'], 
+        $data['sell_price'], 
+        $id
+    ]);
 }
 
+    public function delete($id) {
+    $stmt = $this->db->prepare("DELETE FROM products WHERE id=?");
+    return $stmt->execute([$id]);
+}
+
+public function create($data) {
+    $stmt = $this->db->prepare("INSERT INTO products (name, description, category, price, sell_price, images) VALUES (?, ?, ?, ?, ?, ?)");
+    return $stmt->execute([
+        $data['name'], 
+        $data['description'], 
+        $data['category'], 
+        $data['price'], 
+        $data['sell_price'] ?? null,
+        $data['images'] ?? null
+    ]);
+}
+
+}
+
+?>
