@@ -2,7 +2,6 @@
 
 require_once __DIR__ . '/../repositories/UserRepository.php';
 require_once __DIR__ . '/../../utils/responses.php';
-require_once __DIR__ . '/../../utils/request.php';
 
 class AuthController
 {
@@ -11,6 +10,12 @@ class AuthController
     public function __construct()
     {
         $this->userRepo = new UserRepository();
+    }
+
+    private function jsonResponse($payload, $statusCode = 200)
+    {
+        http_response_code($statusCode);
+        echo json_encode($payload);
     }
 
     public function register()
@@ -22,34 +27,18 @@ class AuthController
         // 2. STRICT VALIDATION (Added for project finalization)
         // 2. STRICT VALIDATION (Added for project finalization)
         if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
-            $this->sendError(400, "Full Name, Email, and Password are required.");
-            return;
-        }
-
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->sendError(400, "Please provide a valid email address.");
-            return;
-        }
-
-        if (strlen($data['password']) < 6) {
-            $this->sendError(400, "Password must be at least 6 characters.");
-            $this->sendError(400, "Full Name, Email, and Password are required.");
-            return;
-        }
-
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->sendError(400, "Please provide a valid email address.");
-            return;
-        }
-
-        if (strlen($data['password']) < 6) {
-            $this->sendError(400, "Password must be at least 6 characters.");
+            $this->jsonResponse(
+                app_error_response('VALIDATION_ERROR', 'Full Name, Email, and Password are required'),
+                400
+            );
             return;
         }
 
         if ($this->userRepo->getUserByEmail($data['email'])) {
-            $this->sendError(409, "Email already registered.");
-            $this->sendError(409, "Email already registered.");
+            $this->jsonResponse(
+                app_error_response('CONFLICT', 'Email already registered'),
+                409
+            );
             return;
         }
 
@@ -65,26 +54,27 @@ class AuthController
                 'role' => 'customer'
             ]);
 
-        echo json_encode([
-            "status" => "success",
-            "user" => [
-                "id" => $userId, 
-                "email" => $data['email']
-        ]
-        ]);
-        } catch (Exception $e) {
-            $this->sendError(500, "Registration failed: " . $e->getMessage());
-            $this->sendError(500, "Registration failed: " . $e->getMessage());
-        }
+        $this->jsonResponse(
+            app_success_response(array(
+                'user' => array(
+                    'id' => (int) $userId,
+                    'fullName' => $data['fullName'],
+                    'email' => $data['email'],
+                    'role' => 'customer'
+                )
+            ))
+        );
     }
 
     public function login()
     {
         $data = json_decode(file_get_contents("php://input"), true);
-        
+
         if (empty($data['email']) || empty($data['password'])) {
-            $this->sendError(400, "Email and password required.");
-            $this->sendError(400, "Email and password required.");
+            $this->jsonResponse(
+                app_error_response('VALIDATION_ERROR', 'Email and password are required'),
+                400
+            );
             return;
         }
 
@@ -95,39 +85,59 @@ class AuthController
                 session_start();
             }
             $_SESSION['user_id'] = $userRow['id'];
-            $_SESSION['user_role'] = $userRow['role'];
 
-            echo json_encode(["user" => [
-                "id" => $userRow['id'],
-                "fullName" => $userRow['full_name'],
-                "email" => $userRow['email']
-            ]]);
+            $this->jsonResponse(
+                app_success_response(array(
+                    'user' => array(
+                        'id' => (int) $userRow['id'],
+                        'fullName' => $userRow['full_name'],
+                        'email' => $userRow['email'],
+                        'role' => isset($userRow['role']) ? $userRow['role'] : 'customer'
+                    )
+                ))
+            );
         } else {
-            $this->sendError(401, "Invalid email or password.");
-            $this->sendError(401, "Invalid email or password.");
+            $this->jsonResponse(
+                app_error_response('UNAUTHORIZED', 'Invalid email or password'),
+                401
+            );
         }
     }
 
-    public function logout() {
+    public function logout()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        session_unset();
+
+        $_SESSION = array();
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
         session_destroy();
-        echo json_encode(["status" => "success", "message" => "Logged out successfully"]);
+
+        $this->jsonResponse(app_success_response(array('message' => 'Logged out successfully')));
     }
 
-    public function me() {
+    public function me()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (isset($_SESSION['user_id'])) {
-            $user = $this->userRepo->getUserById($_SESSION['user_id']);
-            echo json_encode(["loggedIn" => true, "user" => $user]);
-        } else {
-            echo json_encode(["loggedIn" => false]);
+        if (empty($_SESSION['user_id'])) {
+            $this->jsonResponse(app_error_response('UNAUTHORIZED', 'Not authenticated'), 401);
+            return;
         }
+
+        $user = $this->userRepo->getUserById((int) $_SESSION['user_id']);
+        if (!$user) {
+            $this->jsonResponse(app_error_response('NOT_FOUND', 'User not found'), 404);
+            return;
+        }
+
+        $this->jsonResponse(app_success_response(array('user' => $user->toArray())));
     }
 
     /**
