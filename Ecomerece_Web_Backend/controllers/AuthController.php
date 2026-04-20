@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../repositories/UserRepository.php';
 require_once __DIR__ . '/../../utils/responses.php';
+require_once __DIR__ . '/../../utils/request.php';
 
 class AuthController
 {
@@ -20,18 +21,17 @@ class AuthController
 
     public function register()
     {
-        try {
-            // 1. Get JSON input
-            $data = json_decode(file_get_contents("php://input"), true);
+        // 1. Get JSON input from shared utility.
+        $data = app_get_request_body();
 
-            // 2. STRICT VALIDATION (Added for project finalization)
-            if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
-                $this->jsonResponse(
-                    app_error_response('VALIDATION_ERROR', 'Full Name, Email, and Password are required'),
-                    400
-                );
-                return;
-            }
+        // 2. Strict validation.
+        if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
+            $this->jsonResponse(
+                app_error_response('VALIDATION_ERROR', 'Full Name, Email, and Password are required'),
+                400
+            );
+            return;
+        }
 
             // 3. Check if user exists
             if ($this->userRepo->getUserByEmail($data['email'])) {
@@ -72,12 +72,7 @@ class AuthController
 
     public function login()
     {
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if (empty($data['email']) || empty($data['password'])) {
-            $this->sendError(400, "Email and password required.");
-            return;
-        }
+        $data = app_get_request_body();
 
         if (empty($data['email']) || empty($data['password'])) {
             $this->jsonResponse(
@@ -148,14 +143,5 @@ class AuthController
         }
 
         $this->jsonResponse(app_success_response(array('user' => $user->toArray())));
-    }
-
-    /**
-     * Helper method for consistent error responses
-     */
-    private function sendError($code, $message)
-    {
-        http_response_code($code);
-        echo json_encode(["error" => ["message" => $message]]);
     }
 }
