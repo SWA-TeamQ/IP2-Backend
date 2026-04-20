@@ -13,7 +13,8 @@ if ($normalizedUri === '') {
     $normalizedUri = '/';
 }
 
-function route_ends_with($uri, $suffix) {
+function route_ends_with($uri, $suffix)
+{
     if (function_exists('str_ends_with')) {
         return str_ends_with($uri, $suffix);
     }
@@ -36,5 +37,11 @@ if (route_ends_with($normalizedUri, '/api/auth/login') && $method === 'POST') {
 // Route: POST /api/auth/logout
 if (route_ends_with($normalizedUri, '/api/auth/logout') && $method === 'POST') {
     $authController->logout();
+    exit;
+}
+
+// Route: GET /api/auth/me
+if (route_ends_with($normalizedUri, '/api/auth/me') && $method === 'GET') {
+    $authController->me();
     exit;
 }
