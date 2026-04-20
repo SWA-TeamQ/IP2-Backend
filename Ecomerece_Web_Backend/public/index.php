@@ -1,6 +1,5 @@
 <?php
-// 1. Common Headers (CORS) - This allows your Frontend to talk to this Backend
-header("Access-Control-Allow-Origin: *"); // In production, change * to your frontend URL
+header("Access-Control-Allow-Origin: *"); 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");

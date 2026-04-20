@@ -19,10 +19,11 @@ class AuthController
 
     public function register()
     {
+        try{
         // 1. Get JSON input
         $data = json_decode(file_get_contents("php://input"), true);
 
-        // 2. Simple Validation
+        // 2. STRICT VALIDATION (Added for project finalization)
         if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
             $this->jsonResponse(
                 app_error_response('VALIDATION_ERROR', 'Full Name, Email, and Password are required'),
@@ -65,6 +66,11 @@ class AuthController
     public function login()
     {
         $data = json_decode(file_get_contents("php://input"), true);
+        
+        if (empty($data['email']) || empty($data['password'])) {
+            $this->sendError(400, "Email and password required.");
+            return;
+        }
 
         if (empty($data['email']) || empty($data['password'])) {
             $this->jsonResponse(
@@ -135,5 +141,35 @@ class AuthController
         }
 
         $this->jsonResponse(app_success_response(array('user' => $user->toArray())));
+    }
+
+    public function logout() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        session_unset();
+        session_destroy();
+        echo json_encode(["status" => "success", "message" => "Logged out successfully"]);
+    }
+
+    public function me() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (isset($_SESSION['user_id'])) {
+            $user = $this->userRepo->getUserById($_SESSION['user_id']);
+            echo json_encode(["loggedIn" => true, "user" => $user]);
+        } else {
+            echo json_encode(["loggedIn" => false]);
+        }
+    }
+
+    /**
+     * Helper method for consistent error responses
+     */
+    private function sendError($code, $message) {
+        http_response_code($code);
+        echo json_encode(["error" => ["message" => $message]]);
     }
 }
