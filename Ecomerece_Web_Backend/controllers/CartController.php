@@ -14,7 +14,7 @@ class CartController
     public function __construct()
     {
         $this->cartRepo = new CartRepository();
-        $this->productRepo = new ProductRepository();
+        $this->productRepo = new ProductRepository(db());
         $this->logFile = __DIR__ . '/../../logs/cart.log';
     }
 

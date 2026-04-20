@@ -2,11 +2,12 @@
 
 // Keep DB config in one place so changing environments is easy.
 if (!defined('DB_HOST')) {
+	define("DB_DIALECT", getenv("DB_DIALECT"));
 	define('DB_HOST', getenv("DB_HOST"));
 	define('DB_NAME', getenv("DB_NAME"));
 	define('DB_USER', getenv("DB_USERNAME"));
 	define('DB_PASS', getenv("DB_PASSWORD"));
-	define('DB_CHARSET', 'utf8mb4');
+	define("DB_PORT", getenv("DB_PORT"));
 }
 
 function db()
@@ -15,7 +16,7 @@ function db()
 
 	// Reuse one PDO connection per request.
 	if ($pdo === null) {
-		$dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
+		$dsn = DB_DIALECT . ':host=' . DB_HOST . ';dbname=' . DB_NAME . ';port=' . DB_PORT;
 		$options = array(
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
