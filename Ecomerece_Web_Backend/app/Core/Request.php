@@ -2,8 +2,9 @@
 namespace App\Core;
 
 class Request {
+    public ?int $userId = null;
     public function getMethod() {
-        return strtolower($_SERVER['REQUEST_METHOD']);
+        return strtoupper($_SERVER['REQUEST_METHOD']);
     }
 
     public function getPath() {
