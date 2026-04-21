@@ -10,14 +10,23 @@ class ProductController{
     }
 
     public function index(){
-        $category = $_GET['category'] ?? null;
-            $search = $_GET['search'] ?? null;
-            $sortBy = $_GET['sortBy'] ?? 'name';
-            $order = $_GET['order'] ?? 'asc';
+try {
+            $filters = [
+                'category' => $_GET['category'] ?? null,
+                'search'   => $_GET['q'] ?? $_GET['search'] ?? null,
+                'sortBy'   => $_GET['sortBy'] ?? 'name',
+                'order'    => $_GET['order'] ?? 'asc'
+            ];
 
-            // Pass all contract query params to the service
-            $products = $this->service->getFilteredProducts($category, $search, $sortBy, $order);
-
+            $products = $this->service->getFilteredProducts($filters);
+            
+            echo json_encode(app_success_response(
+                ["items" => $products], 
+                ["total" => count($products)]
+            ));
+        } catch (Throwable $e) {
+            $this->sendError("INTERNAL_ERROR", $e->getMessage(), 500);
+        }
             header('Content-Type: application/json');
             echo json_encode(["items" => $products]);
         }
