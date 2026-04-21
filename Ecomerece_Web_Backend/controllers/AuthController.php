@@ -1,50 +1,55 @@
 <?php
-require_once __DIR__ . '/../repositories/UserRepository.php';
 
-class AuthController
-{
+require_once __DIR__ . '/../repositories/UserRepository.php';
+require_once __DIR__ . '/../../utils/responses.php';
+require_once __DIR__ . '/../../utils/request.php';
+
 class AuthController
 {
     private $userRepo;
 
     public function __construct()
     {
-    public function __construct()
-    {
         $this->userRepo = new UserRepository();
+    }
+
+    private function jsonResponse($payload, $statusCode = 200)
+    {
+        http_response_code($statusCode);
+        echo json_encode($payload);
+    }
+
+    private function ensureSessionStarted()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
     }
 
     public function register()
     {
-    public function register()
-    {
-        // 1. Get JSON input
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = app_get_request_body();
 
-        // 2. Simple Validation
-        if (!is_array($data)) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Invalid JSON body"]]);
+        if (empty($data['email']) || empty($data['password']) || empty($data['fullName'])) {
+            $this->jsonResponse(
+                app_error_response('VALIDATION_ERROR', 'Full Name, Email, and Password are required'),
+                400
+            );
             return;
         }
 
-        if (empty($data['fullName']) || empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
-            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->jsonResponse(app_error_response('VALIDATION_ERROR', 'Invalid email address'), 400);
             return;
         }
 
-        // 3. Check if user exists
         if ($this->userRepo->getUserByEmail($data['email'])) {
-            http_response_code(409);
-            echo json_encode(["error" => ["message" => "Email already registered"]]);
+            $this->jsonResponse(app_error_response('CONFLICT', 'Email already registered'), 409);
             return;
         }
 
-        // 4. Hash the Password and Save
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
-        
+
         try {
             $userId = $this->userRepo->createUser([
                 'full_name' => $data['fullName'],
@@ -54,76 +59,59 @@ class AuthController
                 'role' => 'customer'
             ]);
 
-            echo json_encode([
+            $this->jsonResponse([
                 "status" => "success",
                 "user" => [
-                    "id" => $userId, 
+                    "id" => $userId,
                     "email" => $data['email']
                 ]
             ]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => ["message" => "Registration failed: " . $e->getMessage()]]);
+            $this->jsonResponse([
+                "error" => ["message" => "Registration failed: " . $e->getMessage()]
+            ], 500);
         }
     }
 
     public function login()
     {
-    public function login()
-    {
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if (!is_array($data)) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Invalid JSON body"]]);
-            return;
-        }
+        $data = app_get_request_body();
 
         if (empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Email and password required"]]);
+            $this->jsonResponse(
+                app_error_response('VALIDATION_ERROR', 'Email and password are required'),
+                400
+            );
             return;
         }
 
-    
-        if (empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(["error" => ["message" => "Email and password required"]]);
-            return;
-        }
-
-        // Use the Repository to find the user
-        $userRow = $this->userRepo->getUserByEmail($data['email']);
+        $userRow = db_fetch_one(
+            'SELECT id, full_name, email, role, password FROM users WHERE email = :email LIMIT 1',
+            array(':email' => $data['email'])
+        );
 
         if ($userRow && password_verify($data['password'], $userRow['password'])) {
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
+            $this->ensureSessionStarted();
             $_SESSION['user_id'] = $userRow['id'];
             $_SESSION['user_role'] = $userRow['role'];
 
-            echo json_encode([
+            $this->jsonResponse([
                 "status" => "success",
                 "user" => [
                     "id" => $userRow['id'],
-                    // Use 'full_name' for consistency with DB field
                     "fullName" => isset($userRow['fullName']) ? $userRow['fullName'] : (isset($userRow['full_name']) ? $userRow['full_name'] : null),
                     "email" => $userRow['email'],
                     "role" => $userRow['role']
                 ]
             ]);
         } else {
-            http_response_code(401);
-            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
-            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
+            $this->jsonResponse(app_error_response('AUTH_ERROR', 'Invalid email or password'), 401);
         }
     }
 
-    public function logout() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
+    public function logout()
+    {
+        $this->ensureSessionStarted();
         $_SESSION = [];
 
         if (ini_get("session.use_cookies")) {
@@ -138,10 +126,8 @@ class AuthController
                 $params["httponly"]
             );
         }
-                // ...existing code...
         session_destroy();
 
-        http_response_code(200);
-        echo json_encode(["message" => "Logged out"]);
+        $this->jsonResponse(["message" => "Logged out"]);
     }
 }
