@@ -147,27 +147,56 @@ class ProductRepository
         ));
     }
 
+public function create($data) {
+$sql = "INSERT INTO products (name, description, category, price, sell_price, images, features, highlights) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $this->db->prepare($sql);
+        $result = $stmt->execute([
+            $data['name'],
+            $data['description'],
+            $data['category'],
+            $data['price'],
+            $data['salePrice'] ?? null,
+            json_encode($data['images'] ?? []),
+            json_encode($data['features'] ?? []),
+            json_encode($data['highlights'] ?? [])
+        ]);
+
+    return $result ? $this->db->lastInsertedId() : false;
+}
     public function delete($id)
     {
         $stmt = $this->connection()->prepare('DELETE FROM products WHERE id = :id');
         return $stmt->execute(array(':id' => $id));
     }
 
-    public function create($data)
-    {
-        $stmt = $this->connection()->prepare(
-            'INSERT INTO products (name, description, category, price, sell_price, images, stock, created_at)
-             VALUES (:name, :description, :category, :price, :sell_price, :images, :stock, NOW())'
-        );
+    public function findFiltered($filters) {
+        $query = "SELECT * FROM products WHERE 1=1";
+        $params = [];
 
-        return $stmt->execute(array(
-            ':name' => $data['name'],
-            ':description' => isset($data['description']) ? $data['description'] : '',
-            ':category' => isset($data['category']) ? $data['category'] : null,
-            ':price' => isset($data['price']) ? $data['price'] : 0,
-            ':sell_price' => isset($data['sell_price']) ? $data['sell_price'] : null,
-            ':images' => isset($data['images']) ? $data['images'] : null,
-            ':stock' => isset($data['stock']) ? $data['stock'] : 0
-        ));
+        if (!empty($filters['category'])) {
+            $query .= " AND category = ?";
+            $params[] = $filters['category'];
+        }
+
+        if (!empty($filters['search'])) {
+            $query .= " AND (name LIKE ? OR description LIKE ?)";
+            $searchTerm = "%" . $filters['search'] . "%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+
+        $allowedSort = ['name', 'price', 'rating', 'createdAt'];
+        $sortBy = in_array($filters['sortBy'], $allowedSort) ? $filters['sortBy'] : 'name';
+        $order = strtoupper($filters['order']) === 'DESC' ? 'DESC' : 'ASC';
+
+        $query .= " ORDER BY $sortBy $order";
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($params);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 }
