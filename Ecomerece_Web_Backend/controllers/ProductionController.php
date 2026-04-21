@@ -9,9 +9,8 @@ class ProductionController
 
 	public function __construct()
 	{
-		$this->productRepository = new ProductRepository();
+		$this->productRepository = new ProductRepository(db());
 	}
-
 	private function jsonResponse($payload, $statusCode = 200)
 	{
 		http_response_code($statusCode);
@@ -20,18 +19,13 @@ class ProductionController
 
 	public function listProducts()
 	{
-		$products = $this->productRepository->getAllProducts();
-		$items = array();
-
-		foreach ($products as $product) {
-			$items[] = $product->toArray();
-		}
+		$products = $this->productRepository->getAll();
 
 		$this->jsonResponse(
 			app_success_response(
-				array('items' => $items),
+				array('items' => $products),
 				array(
-					'total' => count($items)
+					'total' => count($products)
 				)
 			)
 		);
@@ -46,6 +40,6 @@ class ProductionController
 			return;
 		}
 
-		$this->jsonResponse(app_success_response($product->toArray()));
+		$this->jsonResponse(app_success_response(array('product' => $product)));
 	}
 }
