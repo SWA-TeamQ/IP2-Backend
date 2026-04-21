@@ -1,8 +1,10 @@
 <?php
+// Define a Base Path to avoid repeating __DIR__ . '/..'
+$basePath = realpath(__DIR__ . '/../');
 
-require_once __DIR__ . '/../database/db.php';
-require_once __DIR__ . '/../models/Cart.model.php';
-require_once __DIR__ . '/../models/CartItem.model.php';
+require_once $basePath . '/database/db.php';
+require_once $basePath . '/models/Cart.model.php';
+require_once $basePath . '/models/CartItem.model.php';
 
 
 class CartRepository
@@ -33,7 +35,7 @@ class CartRepository
 	{
 		db_execute(
 			"INSERT INTO carts (user_id, created_at)
-			 VALUES (:userId, NOW())",
+			 VALUES (:userId, CURRENT_TIMESTAMP)",
 			array(':userId' => $userId)
 		);
 
@@ -160,11 +162,12 @@ class CartRepository
 	public function clearOldCarts($days = 30)
 	{
 		$threshold = date('Y-m-d H:i:s', strtotime("-$days days"));
-		// Delete cart items for old carts
+		// Delete cart items for old carts (SQLite-compatible)
 		db_execute(
-			"DELETE ci FROM cart_items ci
-			INNER JOIN carts c ON ci.cart_id = c.id
-			WHERE c.created_at < :threshold",
+			"DELETE FROM cart_items
+			 WHERE cart_id IN (
+				 SELECT id FROM carts WHERE created_at < :threshold
+			 )",
 			array(':threshold' => $threshold)
 		);
 		// Delete old carts

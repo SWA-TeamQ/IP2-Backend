@@ -1,7 +1,9 @@
 <?php
+// Define a Base Path to avoid repeating __DIR__ . '/..'
+$basePath = realpath(__DIR__ . '/../');
 
-require_once __DIR__ . '/../database/db.php';
-require_once __DIR__ . '/../models/User.model.php';
+require_once $basePath . '/database/db.php';
+require_once $basePath . '/models/User.model.php';
 
 class UserRepository
 {
@@ -47,7 +49,7 @@ class UserRepository
     {
         db_execute(
             "INSERT INTO users (full_name, email, phone, password, role, created_at)
-             VALUES (:full_name, :email, :phone, :password, :role, NOW())",
+             VALUES (:full_name, :email, :phone, :password, :role, CURRENT_TIMESTAMP)",
             array(
                 ':full_name' => $data['full_name'],
                 ':email'     => $data['email'],

@@ -1,6 +1,5 @@
 <?php
-
-require_once __DIR__ . '/../../utils/responses.php';
+require_once __DIR__ . '/../utils/responses.php';
 
 class AuthMiddleware
 {

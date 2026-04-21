@@ -1,9 +1,8 @@
 <?php
-
 require_once __DIR__ . '/../repositories/ProductRepository.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
-require_once __DIR__ . '/../../utils/request.php';
-require_once __DIR__ . '/../../utils/responses.php';
+require_once __DIR__ . '/../utils/request.php';
+require_once __DIR__ . '/../utils/responses.php';
 
 class ProductController
 {

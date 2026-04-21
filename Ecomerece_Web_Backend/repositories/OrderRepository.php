@@ -1,8 +1,10 @@
 <?php
+// Define a Base Path to avoid repeating __DIR__ . '/..'
+$basePath = realpath(__DIR__ . '/../');
 
-require_once __DIR__ . '/../database/db.php';
-require_once __DIR__ . '/../models/Order.model.php';
-require_once __DIR__ . '/../models/OrderItem.model.php';
+require_once $basePath . '/database/db.php';
+require_once $basePath . '/models/Order.model.php';
+require_once $basePath . '/models/OrderItem.model.php';
 
 class OrderRepository
 {
@@ -52,7 +54,7 @@ class OrderRepository
 	{
 		db_execute(
 			"INSERT INTO orders (user_id, status, subtotal, tax, shipping, total, created_at, updated_at)
-			 VALUES (:userId, :status, :subtotal, :tax, :shipping, :total, NOW(), NOW())",
+			 VALUES (:userId, :status, :subtotal, :tax, :shipping, :total, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
 			array(
 				':userId' => $data['userId'],
 				':status' => isset($data['status']) ? $data['status'] : 'pending',
@@ -116,7 +118,7 @@ class OrderRepository
 	{
 		return db_execute(
 			"UPDATE orders
-			 SET status = :status, updated_at = NOW()
+			 SET status = :status, updated_at = CURRENT_TIMESTAMP
 			 WHERE id = :orderId",
 			array(
 				':status' => $status,

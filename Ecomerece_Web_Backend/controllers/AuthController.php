@@ -2,8 +2,8 @@
 
 
 require_once __DIR__ . '/../repositories/UserRepository.php';
-require_once __DIR__ . '/../../utils/responses.php';
-require_once __DIR__ . '/../../utils/request.php';
+require_once __DIR__ . '/../utils/responses.php';
+require_once __DIR__ . '/../utils/request.php';
 
 class AuthController
 {

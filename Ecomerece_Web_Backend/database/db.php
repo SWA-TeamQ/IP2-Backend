@@ -33,65 +33,59 @@ if (!defined('DB_HOST')) {
 
 function db()
 {
-    static $pdo = null;
+	static $pdo = null;
 
 	// Reuse one PDO connection per request.
 	if ($pdo === null) {
-		$options = array(
-			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-			PDO::ATTR_EMULATE_PREPARES => false
-		);
-
-		$dialect = strtolower((string) DB_DIALECT);
-		if ($dialect === 'sqlite') {
-			$dbPath = DB_NAME;
-			if (!preg_match('/^[A-Za-z]:\\\\/', $dbPath) && strpos($dbPath, '/') !== 0 && strpos($dbPath, '\\\\') !== 0) {
-				$dbPath = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . str_replace(array('/', '\\\\'), DIRECTORY_SEPARATOR, $dbPath);
+		try {
+			$dbName = env_value('DB_NAME', 'database/shoplight.sqlite3');
+			if (preg_match('/^[A-Za-z]:\\\\/', $dbName) || strpos($dbName, '/') === 0) {
+				$dbPath = $dbName;
+			} else {
+				$dbPath = dirname(__DIR__) . '/' . ltrim(str_replace('\\\\', '/', $dbName), '/');
 			}
 
-			$dbDir = dirname($dbPath);
-			if (!is_dir($dbDir)) {
-				mkdir($dbDir, 0755, true);
-			}
+			$options = [
+				PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+				PDO::ATTR_EMULATE_PREPARES   => false,
+			];
 
-			$dsn = 'sqlite:' . $dbPath;
-			$pdo = new PDO($dsn, null, null, $options);
+			$pdo = new PDO("sqlite:" . $dbPath, null, null, $options);
 			$pdo->exec('PRAGMA foreign_keys = ON');
-		} else {
-			$dsn = DB_DIALECT . ':host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
-        	$pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-		}
-    }
 
-    return $pdo;
+		} catch (PDOException $e) {
+			die("Database connection failed: " . $e->getMessage());
+		}
+	}
+
+	return $pdo;
 }
 
 function db_query($sql, $params = array())
 {
-    // Main helper for prepared queries.
-    $stmt = db()->prepare($sql);
-    $stmt->execute($params);
-    return $stmt;
+	$stmt = db()->prepare($sql);
+	$stmt->execute($params);
+	return $stmt;
 }
 
 function db_fetch_all($sql, $params = array())
 {
-    return db_query($sql, $params)->fetchAll();
+	return db_query($sql, $params)->fetchAll();
 }
 
 function db_fetch_one($sql, $params = array())
 {
-    $result = db_query($sql, $params)->fetch();
-    return $result ? $result : null;
+	$result = db_query($sql, $params)->fetch();
+	return $result ? $result : null;
 }
 
 function db_execute($sql, $params = array())
 {
-    return db_query($sql, $params)->rowCount();
+	return db_query($sql, $params)->rowCount();
 }
 
 function db_last_insert_id()
 {
-    return db()->lastInsertId();
+	return db()->lastInsertId();
 }

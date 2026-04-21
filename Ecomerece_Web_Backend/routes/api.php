@@ -15,81 +15,81 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 $normalizedUri = rtrim($uri, '/');
 if ($normalizedUri === '') {
-	$normalizedUri = '/';
+    $normalizedUri = '/';
 }
 
 function api_route_ends_with($uri, $suffix)
 {
-	if (function_exists('str_ends_with')) {
-		return str_ends_with($uri, $suffix);
-	}
+    if (function_exists('str_ends_with')) {
+        return str_ends_with($uri, $suffix);
+    }
 
-	$len = strlen($suffix);
-	return $len === 0 || substr($uri, -$len) === $suffix;
+    $len = strlen($suffix);
+    return $len === 0 || substr($uri, -$len) === $suffix;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/products') && $method === 'GET') {
-	$productController->listProducts();
-	exit;
+    $productController->listProducts();
+    exit;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/products') && $method === 'POST') {
-	$productController->createProduct();
-	exit;
+    $productController->createProduct();
+    exit;
 }
 
 if (preg_match('#/api/products/(\d+)$#', $normalizedUri, $matches) && $method === 'GET') {
-	$productController->getProduct($matches[1]);
-	exit;
+    $productController->getProduct($matches[1]);
+    exit;
 }
 
 if (preg_match('#/api/products/(\d+)$#', $normalizedUri, $matches) && $method === 'PUT') {
-	$productController->updateProduct((int) $matches[1]);
-	exit;
+    $productController->updateProduct((int) $matches[1]);
+    exit;
 }
 
 if (preg_match('#/api/products/(\d+)$#', $normalizedUri, $matches) && $method === 'DELETE') {
-	$productController->deleteProduct((int) $matches[1]);
-	exit;
+    $productController->deleteProduct((int) $matches[1]);
+    exit;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/cart') && $method === 'GET') {
-	$cartController->getCart();
-	exit;
+    $cartController->getCart();
+    exit;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/cart/items') && $method === 'POST') {
-	$cartController->addOrUpdateItem();
-	exit;
+    $cartController->addOrUpdateItem();
+    exit;
 }
 
 if (preg_match('#/api/cart/items/(\d+)$#', $normalizedUri, $matches) && $method === 'DELETE') {
-	$cartController->removeItem((int) $matches[1]);
-	exit;
+    $cartController->removeItem((int) $matches[1]);
+    exit;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/orders') && $method === 'GET') {
-	$orderController->listOrders();
-	exit;
+    $orderController->listOrders();
+    exit;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/orders') && $method === 'POST') {
-	$orderController->createOrder();
-	exit;
+    $orderController->createOrder();
+    exit;
 }
 
 if (preg_match('#/api/orders/(\d+)$#', $normalizedUri, $matches) && $method === 'GET') {
-	$orderController->getOrder((int) $matches[1]);
-	exit;
+    $orderController->getOrder((int) $matches[1]);
+    exit;
 }
 
 // Alias to match the API contract path.
 if (api_route_ends_with($normalizedUri, '/api/me') && $method === 'GET') {
-	$authController->me();
-	exit;
+    $authController->me();
+    exit;
 }
 
 if (api_route_ends_with($normalizedUri, '/api/auth/me') && $method === 'GET') {
-	$authController->me();
-	exit;
+    $authController->me();
+    exit;
 }
