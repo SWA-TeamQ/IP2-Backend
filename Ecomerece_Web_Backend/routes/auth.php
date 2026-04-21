@@ -47,3 +47,9 @@ if (str_ends_with($uri, '/api/auth/me') && $method === 'GET') {
     $authController->me();
     exit;
 }
+
+// Route: GET /api/auth/me (To check if user is logged in)
+if (str_ends_with($uri, '/api/auth/me') && $method === 'GET') {
+    $authController->me();
+    exit;
+}

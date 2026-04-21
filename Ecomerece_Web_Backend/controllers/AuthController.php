@@ -3,13 +3,19 @@ require_once __DIR__ . '/../repositories/UserRepository.php';
 
 class AuthController
 {
+class AuthController
+{
     private $userRepo;
 
+    public function __construct()
+    {
     public function __construct()
     {
         $this->userRepo = new UserRepository();
     }
 
+    public function register()
+    {
     public function register()
     {
         // 1. Get JSON input
@@ -24,6 +30,7 @@ class AuthController
 
         if (empty($data['fullName']) || empty($data['email']) || empty($data['password'])) {
             http_response_code(400);
+            echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
             echo json_encode(["error" => ["message" => "Full Name, Email, and Password are required"]]);
             return;
         }
@@ -60,6 +67,8 @@ class AuthController
         }
     }
 
+    public function login()
+    {
     public function login()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -105,6 +114,7 @@ class AuthController
             ]);
         } else {
             http_response_code(401);
+            echo json_encode(["error" => ["message" => "Invalid email or password"]]);
             echo json_encode(["error" => ["message" => "Invalid email or password"]]);
         }
     }
