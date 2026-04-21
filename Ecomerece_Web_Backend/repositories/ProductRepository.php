@@ -28,6 +28,7 @@ class ProductRepository
     public function getProductsById($id){
 
         $stmt = $this->db->prepare("SELECT * FROM products WHERE id=?");
+    }
     private function mapProductRow($row)
     {
         if (!isset($row['salePrice']) && isset($row['sell_price'])) {
