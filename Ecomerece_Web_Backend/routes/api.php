@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../controllers/ProductionController.php';
+require_once __DIR__ . '/../controllers/ProductController.php';
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/CartController.php';
 require_once __DIR__ . '/../controllers/OrderController.php';
 
-$productionController = new ProductionController();
+$productController = new ProductController();
 $authController = new AuthController();
 $cartController = new CartController();
 $orderController = new OrderController();
@@ -29,12 +29,27 @@ function api_route_ends_with($uri, $suffix)
 }
 
 if (api_route_ends_with($normalizedUri, '/api/products') && $method === 'GET') {
-	$productionController->listProducts();
+	$productController->listProducts();
+	exit;
+}
+
+if (api_route_ends_with($normalizedUri, '/api/products') && $method === 'POST') {
+	$productController->createProduct();
 	exit;
 }
 
 if (preg_match('#/api/products/(\d+)$#', $normalizedUri, $matches) && $method === 'GET') {
-	$productionController->getProduct($matches[1]);
+	$productController->getProduct($matches[1]);
+	exit;
+}
+
+if (preg_match('#/api/products/(\d+)$#', $normalizedUri, $matches) && $method === 'PUT') {
+	$productController->updateProduct((int) $matches[1]);
+	exit;
+}
+
+if (preg_match('#/api/products/(\d+)$#', $normalizedUri, $matches) && $method === 'DELETE') {
+	$productController->deleteProduct((int) $matches[1]);
 	exit;
 }
 
