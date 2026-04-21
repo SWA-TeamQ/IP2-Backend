@@ -1,27 +1,24 @@
 <?php
 
-class ProductRepository {
+require_once __DIR__ . '/../database/db.php';
+require_once __DIR__ . '/../models/Product.model.php';
 
+class ProductRepository
+{
     private $db;
 
-
-
-    public function __construct($db) {
-
+    public function __construct($db = null)
+    {
         $this->db = $db;
-
     }
 
+    private function connection()
+    {
+        if ($this->db === null) {
+            $this->db = db();
+        }
 
-
-    public function getAll() {
-
-        $stmt = $this->db->prepare("SELECT * FROM products");
-
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        return $this->db;
     }
 
     public function getDB(){
@@ -31,49 +28,123 @@ class ProductRepository {
     public function getProductsById($id){
 
         $stmt = $this->db->prepare("SELECT * FROM products WHERE id=?");
+    private function mapProductRow($row)
+    {
+        if (!isset($row['salePrice']) && isset($row['sell_price'])) {
+            $row['salePrice'] = $row['sell_price'];
+        }
 
-        $stmt->execute([$id]);
+        if (!isset($row['createdAt']) && isset($row['created_at'])) {
+            $row['createdAt'] = $row['created_at'];
+        }
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        return new Product($row);
     }
 
-    public function getProductsByName($name){
+    public function getAllProducts()
+    {
+        $stmt = $this->connection()->prepare(
+            'SELECT id, name, description, category, price, stock, images, sell_price AS salePrice, created_at AS createdAt
+             FROM products
+             ORDER BY id DESC'
+        );
+        $stmt->execute();
 
-        $stmt = $this->db->prepare("SELECT * FROM products WHERE name = ?");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = array();
+        foreach ($rows as $row) {
+            $products[] = $this->mapProductRow($row);
+        }
 
-        $stmt->execute([$name]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        return $products;
     }
 
-    public function getProductsByCategory($category){
-
-        $stmt = $this->db->prepare("SELECT * FROM products WHERE category=?");
-
-        $stmt->execute([$category]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+    // Compatibility helper for older code paths.
+    public function getAll()
+    {
+        $items = array();
+        foreach ($this->getAllProducts() as $product) {
+            $items[] = $product->toArray();
+        }
+        return $items;
     }
 
-    public function update($id, $data) {
-    $stmt = $this->db->prepare("UPDATE products SET name=?, description=?, category=?, price=?, sell_price=? WHERE id=?");
-    return $stmt->execute([
-        $data['name'], 
-        $data['description'], 
-        $data['category'], 
-        $data['price'], 
-        $data['sell_price'], 
-        $id
-    ]);
-}
+    // Returns a Product or null.
+    public function getProductById($id)
+    {
+        $stmt = $this->connection()->prepare(
+            'SELECT id, name, description, category, price, stock, images, sell_price AS salePrice, created_at AS createdAt
+             FROM products
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(array(':id' => $id));
 
-    public function delete($id) {
-    $stmt = $this->db->prepare("DELETE FROM products WHERE id=?");
-    return $stmt->execute([$id]);
-}
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $this->mapProductRow($result) : null;
+    }
+
+    public function getProductsByName($name)
+    {
+        $stmt = $this->connection()->prepare(
+            'SELECT id, name, description, category, price, stock, images, sell_price AS salePrice, created_at AS createdAt
+             FROM products
+             WHERE name = :name'
+        );
+        $stmt->execute(array(':name' => $name));
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = array();
+        foreach ($rows as $row) {
+            $products[] = $this->mapProductRow($row);
+        }
+
+        return $products;
+    }
+
+    public function getProductsByCategory($category)
+    {
+        $stmt = $this->connection()->prepare(
+            'SELECT id, name, description, category, price, stock, images, sell_price AS salePrice, created_at AS createdAt
+             FROM products
+             WHERE category = :category'
+        );
+        $stmt->execute(array(':category' => $category));
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = array();
+        foreach ($rows as $row) {
+            $products[] = $this->mapProductRow($row);
+        }
+
+        return $products;
+    }
+
+    public function update($id, $data)
+    {
+        $stmt = $this->connection()->prepare(
+            'UPDATE products
+             SET name = :name,
+                 description = :description,
+                 category = :category,
+                 price = :price,
+                 sell_price = :sell_price,
+                 images = :images,
+                 stock = :stock
+             WHERE id = :id'
+        );
+
+        return $stmt->execute(array(
+            ':name' => $data['name'],
+            ':description' => isset($data['description']) ? $data['description'] : '',
+            ':category' => isset($data['category']) ? $data['category'] : null,
+            ':price' => isset($data['price']) ? $data['price'] : 0,
+            ':sell_price' => isset($data['sell_price']) ? $data['sell_price'] : null,
+            ':images' => isset($data['images']) ? $data['images'] : null,
+            ':stock' => isset($data['stock']) ? $data['stock'] : 0,
+            ':id' => $id
+        ));
+    }
 
 public function create($data) {
     $stmt = $this->db->prepare("INSERT INTO products (name, description, category, price, sell_price, images) VALUES (?, ?, ?, ?, ?, ?)");
@@ -88,7 +159,10 @@ public function create($data) {
 
     return $success ? $this->db->lastInsertedId() : false;
 }
+    public function delete($id)
+    {
+        $stmt = $this->connection()->prepare('DELETE FROM products WHERE id = :id');
+        return $stmt->execute(array(':id' => $id));
+    }
 
 }
-
-?>

@@ -1,4 +1,8 @@
 RewriteEngine On
+
+RewriteBase /IP2-Backend/Ecomerece_Web_Backend/public/
+
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
