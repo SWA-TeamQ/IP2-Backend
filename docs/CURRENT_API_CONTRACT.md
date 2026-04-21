@@ -1,352 +1,412 @@
-# E-Commerce API Documentation
+# E-Commerce Backend API Documentation
 
-This document outlines the exact API contract for the backend application (`Ecomerece_Web_Backend`) based on the latest architectural updates (JSON Web Tokens, utility standardizations, and SQLite routing).
+This document is generated from the current backend code in Ecomerece_Web_Backend.
+It is the source of truth for React integration.
 
-## Base Format
+## Base URL
 
-### Headers
+Use this base URL in development:
 
-- **Content-Type:** `application/json`
-- **Authorization:** `Bearer <YOUR_JWT_TOKEN>` (for protected routes)
+`http://localhost/IP2-Backend/Ecomerece_Web_Backend/public`
 
-### Standard Responses
+## Response Format
 
-All API responses follow a strict envelope structure.
+The API uses a shared response envelope from utils/responses.php.
 
-#### Success Response (2xx HTTP Status Codes)
+Success:
 
 ```json
 {
-    "status": "success",
-    "data": {
-        "id": 1,
-        "name": "Product Name"
-    },
-    "meta": {
-        "page": 1,
-        "limit": 12,
-        "total": 50
-    }
+    "success": true,
+    "data": {},
+    "meta": {}
 }
 ```
 
-_(Note: The `meta` object is optional and usually used for pagination)._
-
-#### Error Response (4xx, 5xx HTTP Status Codes)
+Error:
 
 ```json
 {
-    "status": "error",
+    "success": false,
     "error": {
         "code": "VALIDATION_ERROR",
-        "message": "Human readable message describing what went wrong",
-        "details": {
-            "email": "Email is already registered"
-        }
+        "message": "Readable message",
+        "details": {}
     }
 }
 ```
 
----
+## Auth Model (Important for React)
 
-## 1. Authentication Endpoints
+This backend currently uses PHP sessions (cookie-based auth), not JWT.
 
-### 1.1 Register
+For requests that depend on login state:
 
-**Method**: `POST /api/auth/register`
-**Auth Required**: No
+- Use `credentials: 'include'` in fetch.
+- Send `Content-Type: application/json` for body requests.
 
-**Request Body**:
+Example fetch wrapper:
+
+```js
+const API_BASE = "http://localhost/IP2-Backend/Ecomerece_Web_Backend/public";
+
+async function api(path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+        },
+        ...options,
+    });
+
+    return res.json();
+}
+```
+
+## Endpoint List
+
+### Health
+
+1. GET `/health.php`
+
+What it does:
+
+- Returns backend status and a DB check.
+
+Request:
+
+```js
+api("/health.php", { method: "GET" });
+```
+
+### Authentication
+
+1. POST `/api/auth/register`
+
+What it does:
+
+- Creates a new customer account.
+
+Body:
 
 ```json
 {
     "fullName": "John Doe",
     "email": "john@example.com",
-    "password": "securepassword",
-    "phone": "1234567890" // Optional
+    "password": "secret123",
+    "phone": "01000000000"
 }
 ```
 
-**Response (201 Created)**:
+React request:
 
-```json
-{
-    "status": "success",
-    "data": {
-        "token": "eyJ0...token...",
-        "user": {
-            "id": 1,
-            "fullName": "John Doe",
-            "email": "john@example.com",
-            "role": "customer"
-        }
-    }
-}
+```js
+api("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({
+        fullName: "John Doe",
+        email: "john@example.com",
+        password: "secret123",
+        phone: "01000000000",
+    }),
+});
 ```
 
-### 1.2 Login
+2. POST `/api/auth/login`
 
-**Method**: `POST /api/auth/login`
-**Auth Required**: No
+What it does:
 
-**Request Body**:
+- Authenticates user and creates PHP session.
+
+Body:
 
 ```json
 {
     "email": "john@example.com",
-    "password": "securepassword"
+    "password": "secret123"
 }
 ```
 
-**Response (200 OK)**:
+React request:
+
+```js
+api("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({
+        email: "john@example.com",
+        password: "secret123",
+    }),
+});
+```
+
+3. POST `/api/auth/logout`
+
+What it does:
+
+- Clears session data and destroys session.
+
+React request:
+
+```js
+api("/api/auth/logout", { method: "POST" });
+```
+
+4. GET `/api/auth/me`
+5. GET `/api/me`
+
+What they do:
+
+- Both return the currently logged-in user from session.
+- `/api/me` is an alias.
+
+React request:
+
+```js
+api("/api/auth/me", { method: "GET" });
+```
+
+### Products
+
+1. GET `/api/products`
+
+What it does:
+
+- Returns paginated/filtered products.
+
+Query params:
+
+- `q` optional search text
+- `search` optional search text (also supported)
+- `category` optional category
+- `sortBy` optional field, default `name`
+- `order` optional `asc` or `desc`, default `asc`
+- `page` optional, default `1`
+- `limit` optional, default `12`
+
+React request:
+
+```js
+api("/api/products?page=1&limit=12&sortBy=name&order=asc", { method: "GET" });
+```
+
+2. GET `/api/products/{id}`
+
+What it does:
+
+- Returns one product by id.
+
+React request:
+
+```js
+api("/api/products/1", { method: "GET" });
+```
+
+3. POST `/api/products` (Admin only)
+
+What it does:
+
+- Creates a product.
+- Requires logged-in admin session.
+
+Body example:
 
 ```json
 {
-    "status": "success",
-    "data": {
-        "token": "eyJ0...token...",
-        "user": {
-            "id": 1,
-            "fullName": "John Doe",
-            "email": "john@example.com",
-            "role": "customer"
-        }
-    }
+    "name": "Running Shoe",
+    "price": 120,
+    "salePrice": 99,
+    "stock": 15,
+    "rating": 4.6,
+    "images": ["/uploads/products/shoe1.png"]
 }
 ```
 
-### 1.3 Get Current User
+React request:
 
-**Method**: `GET /api/auth/me` (or `GET /api/me`)
-**Auth Required**: Yes (Bearer Token)
-
-**Response (200 OK)**:
-
-```json
-{
-    "status": "success",
-    "data": {
-        "user": {
-            "id": 1,
-            "fullName": "John Doe",
-            "email": "john@example.com",
-            "role": "customer"
-        }
-    }
-}
+```js
+api("/api/products", {
+    method: "POST",
+    body: JSON.stringify({
+        name: "Running Shoe",
+        price: 120,
+        salePrice: 99,
+        stock: 15,
+        rating: 4.6,
+        images: ["/uploads/products/shoe1.png"],
+    }),
+});
 ```
 
-### 1.4 Logout
+4. PUT `/api/products/{id}` (Admin only)
 
-**Method**: `POST /api/auth/logout`
-**Auth Required**: No (Frontend handles token deletion)
+What it does:
 
-**Response (200 OK)**:
+- Updates a product.
+- Partial payload is accepted.
 
-```json
-{
-    "status": "success",
-    "data": {
-        "message": "Logged out successfully"
-    }
-}
+React request:
+
+```js
+api("/api/products/1", {
+    method: "PUT",
+    body: JSON.stringify({
+        price: 110,
+        stock: 20,
+    }),
+});
 ```
 
----
+5. DELETE `/api/products/{id}` (Admin only)
 
-## 2. Product Endpoints
+What it does:
 
-### 2.1 List Products
+- Deletes a product.
 
-**Method**: `GET /api/products`
-**Auth Required**: No
+React request:
 
-**Query Parameters (Optional)**:
-
-- `q` or `search`: Search term
-- `category`: Filter by category
-- `sortBy`: Field to sort by (default: 'name')
-- `order`: 'asc' or 'desc' (default: 'asc')
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 12)
-
-**Response (200 OK)**:
-
-```json
-{
-    "status": "success",
-    "data": {
-        "items": [
-            {
-                "id": 1,
-                "name": "Product 1",
-                "price": 99.99,
-                "salePrice": null,
-                "stock": 10,
-                "category": "Electronics"
-            }
-        ]
-    },
-    "meta": {
-        "page": 1,
-        "limit": 12,
-        "total": 100
-    }
-}
+```js
+api("/api/products/1", { method: "DELETE" });
 ```
 
-### 2.2 Get Single Product
+### Cart
 
-**Method**: `GET /api/products/{id}`
-**Auth Required**: No
+All cart endpoints require logged-in session.
 
-**Response (200 OK)**: Returns the single product object inside `data`.
+1. GET `/api/cart`
 
-### 2.3 Create Product
+What it does:
 
-**Method**: `POST /api/products`
-**Auth Required**: Yes (Admin only)
+- Returns current user cart (creates one if missing).
 
-**Request Body**:
+React request:
 
-```json
-{
-    "name": "New Product",
-    "price": 100.0,
-    "salePrice": null,
-    "stock": 50,
-    "rating": 0,
-    "images": ["url1.jpg"]
-}
+```js
+api("/api/cart", { method: "GET" });
 ```
 
-### 2.4 Update Product
+2. POST `/api/cart/items`
 
-**Method**: `PUT /api/products/{id}`
-**Auth Required**: Yes (Admin only)
+What it does:
 
-**Request Body**: Same fields as Create Product, but all are optional (partial update).
+- Adds item or updates item quantity.
 
-### 2.5 Delete Product
-
-**Method**: `DELETE /api/products/{id}`
-**Auth Required**: Yes (Admin only)
-
-**Response (200 OK)**:
+Body:
 
 ```json
 {
-    "status": "success",
-    "data": {
-        "deleted": true
-    }
-}
-```
-
----
-
-## 3. Cart Endpoints
-
-### 3.1 Get Cart
-
-**Method**: `GET /api/cart`
-**Auth Required**: Yes (Bearer Token)
-
-**Response (200 OK)**:
-
-```json
-{
-    "status": "success",
-    "data": {
-        "id": 1,
-        "userId": 1,
-        "items": [
-            {
-                "productId": 5,
-                "quantity": 2
-            }
-        ]
-    }
-}
-```
-
-### 3.2 Add or Update Cart Item
-
-**Method**: `POST /api/cart/items`
-**Auth Required**: Yes (Bearer Token)
-
-**Request Body**:
-
-```json
-{
-    "productId": 5,
+    "productId": 1,
     "quantity": 2
 }
 ```
 
-_(Note: If the product already exists in the cart, this updates its quantity)._
+React request:
 
-### 3.3 Remove Item from Cart
-
-**Method**: `DELETE /api/cart/items/{productId}`
-**Auth Required**: Yes (Bearer Token)
-
-**Response (200 OK)**: Returns the updated cart state after removing the item.
-
----
-
-## 4. Order Endpoints
-
-### 4.1 List Orders
-
-**Method**: `GET /api/orders`
-**Auth Required**: Yes (Bearer Token)
-
-**Response (200 OK)**:
-
-```json
-{
-    "status": "success",
-    "data": {
-        "items": [
-            {
-                "id": 101,
-                "userId": 1,
-                "status": "pending",
-                "total": 120.0
-            }
-        ]
-    },
-    "meta": {
-        "total": 1
-    }
-}
+```js
+api("/api/cart/items", {
+    method: "POST",
+    body: JSON.stringify({
+        productId: 1,
+        quantity: 2,
+    }),
+});
 ```
 
-### 4.2 Get Single Order
+3. DELETE `/api/cart/items/{productId}`
 
-**Method**: `GET /api/orders/{id}`
-**Auth Required**: Yes (Bearer Token)
-_(Note: Only returns the order if it belongs to the authenticated user)._
+What it does:
 
-### 4.3 Create Order
+- Removes one product from cart.
 
-**Method**: `POST /api/orders`
-**Auth Required**: Yes (Bearer Token)
+React request:
 
-**Request Body**:
+```js
+api("/api/cart/items/1", { method: "DELETE" });
+```
+
+### Orders
+
+All order endpoints require logged-in session.
+
+1. GET `/api/orders`
+
+What it does:
+
+- Lists orders for current user.
+
+React request:
+
+```js
+api("/api/orders", { method: "GET" });
+```
+
+2. GET `/api/orders/{id}`
+
+What it does:
+
+- Returns one order if it belongs to current user.
+
+React request:
+
+```js
+api("/api/orders/1", { method: "GET" });
+```
+
+3. POST `/api/orders`
+
+What it does:
+
+- Creates an order.
+- Uses `items` from body when provided.
+- If `items` is missing, it creates order from current cart items.
+
+Body with explicit items:
 
 ```json
 {
-    "shipping": 10.0,
-    "tax": 5.0,
     "items": [
-        {
-            "productId": 1,
-            "quantity": 2
-        }
-    ]
+        { "productId": 1, "quantity": 2 },
+        { "productId": 2, "quantity": 1 }
+    ],
+    "shipping": 10,
+    "tax": 5
 }
 ```
 
-_(Note: If the `items` array is omitted or not provided, the API automatically grabs all items from the current user's Cart and clears the Cart after the order is successfully created)._
+React request:
+
+```js
+api("/api/orders", {
+    method: "POST",
+    body: JSON.stringify({
+        items: [
+            { productId: 1, quantity: 2 },
+            { productId: 2, quantity: 1 },
+        ],
+        shipping: 10,
+        tax: 5,
+    }),
+});
+```
+
+## Common Frontend Failure Cases
+
+- 401 UNAUTHORIZED:
+  User is not logged in for cart/order/protected actions.
+
+- 403 FORBIDDEN:
+  Logged-in user is not admin for product create/update/delete.
+
+- 404 NOT_FOUND:
+  Entity id does not exist or endpoint path is wrong.
+
+- 400 VALIDATION_ERROR:
+  Invalid payload shape or required fields missing.
+
+## Recommended React Integration Flow
+
+1. App start: call GET `/api/auth/me`.
+2. If unauthorized, show login.
+3. On login success, reload user profile with `/api/auth/me`.
+4. Use `credentials: 'include'` on every request.
+5. Handle `success: false` responses centrally in one API client.

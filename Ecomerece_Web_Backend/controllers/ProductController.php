@@ -1,12 +1,8 @@
 <?php
-// Define base paths to avoid repeating __DIR__ . '/..'
-$basePath = realpath(__DIR__ . '/../');
-$rootBasePath = realpath(__DIR__ . '/../..');
-
-require_once $basePath . '/repositories/ProductRepository.php';
-require_once $basePath . '/middleware/AuthMiddleware.php';
-require_once $rootBasePath . '/utils/request.php';
-require_once $rootBasePath . '/utils/responses.php';
+require_once __DIR__ . '/../repositories/ProductRepository.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../utils/request.php';
+require_once __DIR__ . '/../utils/responses.php';
 
 class ProductController
 {

@@ -10,11 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-// App code lives under Ecomerece_Web_Backend, shared helpers live at the repo root.
+// App code lives under Ecomerece_Web_Backend, shared helpers live inside its utils folder.
 $appBasePath = dirname(__DIR__);
-$rootBasePath = realpath(__DIR__ . '/../../');
 
-require_once $rootBasePath . '/utils/responses.php';
+require_once $appBasePath . '/utils/responses.php';
 
 try {
     // 2. Load the Database Connection

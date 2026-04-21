@@ -49,7 +49,7 @@ class UserRepository
     {
         db_execute(
             "INSERT INTO users (full_name, email, phone, password, role, created_at)
-             VALUES (:full_name, :email, :phone, :password, :role, NOW())",
+             VALUES (:full_name, :email, :phone, :password, :role, CURRENT_TIMESTAMP)",
             array(
                 ':full_name' => $data['full_name'],
                 ':email'     => $data['email'],

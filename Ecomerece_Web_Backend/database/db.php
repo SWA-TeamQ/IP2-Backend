@@ -38,7 +38,12 @@ function db()
 	// Reuse one PDO connection per request.
 	if ($pdo === null) {
 		try {
-			$dbPath = realpath(__DIR__ . '/../shoplight.sqlite3');
+			$dbName = env_value('DB_NAME', 'database/shoplight.sqlite3');
+			if (preg_match('/^[A-Za-z]:\\\\/', $dbName) || strpos($dbName, '/') === 0) {
+				$dbPath = $dbName;
+			} else {
+				$dbPath = dirname(__DIR__) . '/' . ltrim(str_replace('\\\\', '/', $dbName), '/');
+			}
 
 			$options = [
 				PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
