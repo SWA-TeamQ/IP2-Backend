@@ -10,19 +10,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/../../utils/responses.php';
+// App code lives under Ecomerece_Web_Backend, shared helpers live at the repo root.
+$appBasePath = dirname(__DIR__);
+$rootBasePath = realpath(__DIR__ . '/../../');
+
+require_once $rootBasePath . '/utils/responses.php';
 
 try {
     // 2. Load the Database Connection
-    require_once __DIR__ . '/../database/db.php';
+    require_once $appBasePath . '/database/db.php';
 
     // 3. Load your Models and Repositories (So your routes can use them)
-    require_once __DIR__ . '/../models/User.model.php';
-    require_once __DIR__ . '/../repositories/UserRepository.php';
+    require_once $appBasePath . '/models/User.model.php';
+    require_once $appBasePath . '/repositories/UserRepository.php';
 
     // 4. Include route files.
-    require_once __DIR__ . '/../routes/auth.php';
-    require_once __DIR__ . '/../routes/api.php';
+    require_once $appBasePath . '/routes/auth.php';
+    require_once $appBasePath . '/routes/api.php';
 
     // 5. Default 404 Response when no route matched.
     http_response_code(404);

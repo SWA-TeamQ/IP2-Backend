@@ -1,8 +1,10 @@
 <?php
+// Define a Base Path to avoid repeating __DIR__ . '/..'
+$basePath = realpath(__DIR__ . '/../');
 
-require_once __DIR__ . '/../database/db.php';
-require_once __DIR__ . '/../models/Cart.model.php';
-require_once __DIR__ . '/../models/CartItem.model.php';
+require_once $basePath . '/database/db.php';
+require_once $basePath . '/models/Cart.model.php';
+require_once $basePath . '/models/CartItem.model.php';
 
 
 class CartRepository

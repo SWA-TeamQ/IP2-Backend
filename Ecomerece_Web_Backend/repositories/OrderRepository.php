@@ -1,8 +1,10 @@
 <?php
+// Define a Base Path to avoid repeating __DIR__ . '/..'
+$basePath = realpath(__DIR__ . '/../');
 
-require_once __DIR__ . '/../database/db.php';
-require_once __DIR__ . '/../models/Order.model.php';
-require_once __DIR__ . '/../models/OrderItem.model.php';
+require_once $basePath . '/database/db.php';
+require_once $basePath . '/models/Order.model.php';
+require_once $basePath . '/models/OrderItem.model.php';
 
 class OrderRepository
 {

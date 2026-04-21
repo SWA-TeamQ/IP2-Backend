@@ -1,6 +1,8 @@
 <?php
+// Define a Base Path to avoid repeating __DIR__ . '/../..'
+$basePath = realpath(__DIR__ . '/../..');
 
-require_once __DIR__ . '/../../utils/responses.php';
+require_once $basePath . '/utils/responses.php';
 
 class AuthMiddleware
 {
