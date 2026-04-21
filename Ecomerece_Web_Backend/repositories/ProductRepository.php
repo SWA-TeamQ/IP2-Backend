@@ -21,6 +21,13 @@ class ProductRepository
         return $this->db;
     }
 
+    public function getDB(){
+        return $this->db;
+    }
+
+    public function getProductsById($id){
+
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id=?");
     private function mapProductRow($row)
     {
         if (!isset($row['salePrice']) && isset($row['sell_price'])) {
@@ -139,27 +146,23 @@ class ProductRepository
         ));
     }
 
+public function create($data) {
+    $stmt = $this->db->prepare("INSERT INTO products (name, description, category, price, sell_price, images) VALUES (?, ?, ?, ?, ?, ?)");
+    $success= $stmt->execute([
+        $data['name'], 
+        $data['description'], 
+        $data['category'], 
+        $data['price'], 
+        $data['sell_price'] ?? null,
+        $data['images'] ?? null
+    ]);
+
+    return $success ? $this->db->lastInsertedId() : false;
+}
     public function delete($id)
     {
         $stmt = $this->connection()->prepare('DELETE FROM products WHERE id = :id');
         return $stmt->execute(array(':id' => $id));
     }
 
-    public function create($data)
-    {
-        $stmt = $this->connection()->prepare(
-            'INSERT INTO products (name, description, category, price, sell_price, images, stock, created_at)
-             VALUES (:name, :description, :category, :price, :sell_price, :images, :stock, NOW())'
-        );
-
-        return $stmt->execute(array(
-            ':name' => $data['name'],
-            ':description' => isset($data['description']) ? $data['description'] : '',
-            ':category' => isset($data['category']) ? $data['category'] : null,
-            ':price' => isset($data['price']) ? $data['price'] : 0,
-            ':sell_price' => isset($data['sell_price']) ? $data['sell_price'] : null,
-            ':images' => isset($data['images']) ? $data['images'] : null,
-            ':stock' => isset($data['stock']) ? $data['stock'] : 0
-        ));
-    }
 }
