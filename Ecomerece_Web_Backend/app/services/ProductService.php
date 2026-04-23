@@ -22,6 +22,10 @@ class ProductService {
         return $this->productModel->create($data);
     }
 
+    public function updateProduct($id, $data) {
+        return $this->productModel->update($id, $data);
+    }
+
     public function deleteProduct($id) {
         return $this->productModel->delete($id);
     }

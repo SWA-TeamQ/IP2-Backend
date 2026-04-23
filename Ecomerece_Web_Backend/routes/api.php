@@ -24,6 +24,10 @@ $router->post('/orders', [OrderController::class, 'create']);
 $router->get('/orders', [OrderController::class, 'index']);
 
 // 5. Admin Routes
+$router->middleware('/admin/stats', AuthMiddleware::class);
+$router->middleware('/admin/stats', AdminMiddleware::class);
+$router->get('/admin/stats', [App\Controllers\Admin\AdminStatsController::class, 'index']);
+
 $router->middleware('/orders/all', AuthMiddleware::class);
 $router->middleware('/orders/all', AdminMiddleware::class);
 $router->get('/orders/all', [OrderController::class, 'all']);

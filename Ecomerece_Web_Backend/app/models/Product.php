@@ -43,8 +43,8 @@ class Product extends Model {
     }
 
     public function create($data) {
-        $sql = "INSERT INTO products (name, slug, description, price_cents, sale_price_cents, images, category, badge, attributes, features, highlights) 
-                VALUES (:name, :slug, :description, :price_cents, :sale_price_cents, :images, :category, :badge, :attributes, :features, :highlights)
+        $sql = "INSERT INTO products (name, slug, description, price_cents, sale_price_cents, images, category, badge, attributes, features, highlights, stock_quantity) 
+                VALUES (:name, :slug, :description, :price_cents, :sale_price_cents, :images, :category, :badge, :attributes, :features, :highlights, :stock_quantity)
                 RETURNING id";
         
         return $this->query($sql, [
@@ -58,12 +58,49 @@ class Product extends Model {
             'badge' => $data['badge'] ?? null,
             'attributes' => json_encode($data['attributes']),
             'features' => $this->toPostgresArray($data['features']),
-            'highlights' => $this->toPostgresArray($data['highlights'])
+            'highlights' => $this->toPostgresArray($data['highlights']),
+            'stock_quantity' => $data['stock_quantity'] ?? 0
         ])->fetchColumn();
     }
 
     public function update($id, $data) {
-        // Implementation for partial updates could go here
+        $fields = [];
+        $params = ['id' => $id];
+
+        $updatable = [
+            'name', 'description', 'price_cents', 'sale_price_cents', 
+            'category', 'badge', 'rating', 'review_count', 'stock_quantity'
+        ];
+
+        foreach ($updatable as $field) {
+            if (isset($data[$field])) {
+                $fields[] = "$field = :$field";
+                $params[$field] = $data[$field];
+            }
+        }
+
+        // Special handling for complex types
+        if (isset($data['images'])) {
+            $fields[] = "images = :images";
+            $params['images'] = $this->toPostgresArray($data['images']);
+        }
+        if (isset($data['attributes'])) {
+            $fields[] = "attributes = :attributes";
+            $params['attributes'] = json_encode($data['attributes']);
+        }
+        if (isset($data['features'])) {
+            $fields[] = "features = :features";
+            $params['features'] = $this->toPostgresArray($data['features']);
+        }
+        if (isset($data['highlights'])) {
+            $fields[] = "highlights = :highlights";
+            $params['highlights'] = $this->toPostgresArray($data['highlights']);
+        }
+
+        if (empty($fields)) return false;
+
+        $sql = "UPDATE products SET " . implode(', ', $fields) . " WHERE id = :id";
+        return $this->query($sql, $params);
     }
 
     public function delete($id) {

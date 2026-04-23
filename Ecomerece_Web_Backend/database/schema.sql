@@ -29,6 +29,7 @@ CREATE TABLE products (
     category VARCHAR(50) NOT NULL,
     rating NUMERIC(3,2) DEFAULT 0,
     review_count INTEGER DEFAULT 0,
+    stock_quantity INTEGER DEFAULT 0,
     badge VARCHAR(50) NULL,
     attributes JSONB NOT NULL,
     features TEXT[] NOT NULL,

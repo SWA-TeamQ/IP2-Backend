@@ -55,4 +55,8 @@ class Request {
         $headers = getallheaders();
         return $headers[$name] ?? $headers[strtolower($name)] ?? null;
     }
+
+    public function getFiles() {
+        return $_FILES;
+    }
 }
