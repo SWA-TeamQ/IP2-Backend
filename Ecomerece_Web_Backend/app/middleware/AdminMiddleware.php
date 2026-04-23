@@ -7,18 +7,16 @@ use App\Models\User;
 
 class AdminMiddleware {
     public function handle(Request $request, Response $response) {
-        // AuthMiddleware must run before this, so userId should be set
-        if (!$request->userId) {
-            $response->setStatusCode(401);
-            return $response->json(['error' => 'Unauthorized']);
+        // AuthMiddleware must run before this to set userId
+        if (empty($request->userId)) {
+            return $response->error('Unauthorized: Authentication required', 401);
         }
 
         $userModel = new User();
         $user = $userModel->find($request->userId);
 
         if (!$user || $user['role'] !== 'admin') {
-            $response->setStatusCode(403);
-            return $response->json(['error' => 'Forbidden: Admin access required']);
+            return $response->error('Forbidden: Admin access required', 403);
         }
 
         return true;

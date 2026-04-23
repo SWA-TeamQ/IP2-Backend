@@ -6,7 +6,7 @@ use App\Core\Response;
 use App\Services\AuthService;
 use App\Helpers\Validator;
 
-class AuthController {
+class AuthController extends Controller {
     private AuthService $authService;
 
     public function __construct() {
@@ -22,16 +22,16 @@ class AuthController {
         ]);
 
         if (!empty($errors)) {
-            return $response->json(['errors' => $errors], 400);
+            return $this->error($response, 'Validation failed', 400, $errors);
         }
 
         $result = $this->authService->login($data['email'], $data['password']);
         
         if (isset($result['error'])) {
-            return $response->json($result, 401);
+            return $this->error($response, $result['error'], 401);
         }
 
-        return $response->json($result);
+        return $this->success($response, $result, 'Login successful');
     }
 
     public function register(Request $request, Response $response) {
@@ -45,31 +45,31 @@ class AuthController {
         ]);
 
         if (!empty($errors)) {
-            return $response->json(['errors' => $errors], 400);
+            return $this->error($response, 'Validation failed', 400, $errors);
         }
 
         $result = $this->authService->register($data);
         
         if (isset($result['error'])) {
-            return $response->json($result, 400);
+            return $this->error($response, $result['error'], 400);
         }
 
-        return $response->json($result, 201);
+        return $this->success($response, $result['user'], 'Registration successful', 201);
     }
 
     public function me(Request $request, Response $response) {
         $token = $request->getHeader('Authorization');
         
         if (!$token) {
-            return $response->json(['error' => 'No authorization token provided'], 401);
+            return $this->error($response, 'No authorization token provided', 401);
         }
 
         $result = $this->authService->getCurrentUser($token);
 
         if (isset($result['error'])) {
-            return $response->json($result, 401);
+            return $this->error($response, $result['error'], 401);
         }
 
-        return $response->json($result);
+        return $this->success($response, $result);
     }
 }

@@ -49,4 +49,11 @@ class Order extends Model {
     public function findAll() {
         return $this->query("SELECT * FROM orders ORDER BY created_at DESC")->fetchAll();
     }
+
+    public function hasUserPurchasedProduct($userId, $productId) {
+        $sql = "SELECT COUNT(*) FROM orders o 
+                JOIN order_items oi ON o.id = oi.order_id 
+                WHERE o.user_id = :user_id AND oi.product_id::text = :product_id";
+        return $this->query($sql, ['user_id' => $userId, 'product_id' => $productId])->fetchColumn() > 0;
+    }
 }

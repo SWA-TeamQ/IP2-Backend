@@ -10,21 +10,19 @@ class ProductService {
         $this->productModel = new Product();
     }
 
-    public function getAllProducts() {
-        // You could add logic here to only show products with stock > 0
-        return $this->productModel->getAll();
+    public function getAllProducts($filters = []) {
+        return $this->productModel->getAll($filters);
     }
 
-    public function getProductById($id) {
-        $product = $this->productModel->find($id);
-        if (!$product) {
-            return ['error' => 'Product not found'];
-        }
-        return $product;
+    public function getProductByIdOrSlug($idOrSlug) {
+        return $this->productModel->findByIdOrSlug($idOrSlug);
     }
 
-    public function searchProducts($query) {
-        // Logic for searching products by name or description
-        return $this->productModel->search($query);
+    public function createProduct($data) {
+        return $this->productModel->create($data);
+    }
+
+    public function deleteProduct($id) {
+        return $this->productModel->delete($id);
     }
 }

@@ -8,19 +8,18 @@ use App\Helpers\JWTHelper;
 class AuthMiddleware {
     public function handle(Request $request, Response $response) {
         $headers = getallheaders();
+        // Handle both cases for key
         $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
 
         if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-            $response->setStatusCode(401);
-            return $response->json(['error' => 'Unauthorized: No token provided']);
+            return $response->error('Unauthorized: No token provided', 401);
         }
 
         $token = $matches[1];
         $decoded = JWTHelper::decodeToken($token);
 
         if (!$decoded) {
-            $response->setStatusCode(401);
-            return $response->json(['error' => 'Unauthorized: Invalid or expired token']);
+            return $response->error('Unauthorized: Invalid or expired token', 401);
         }
 
         // Attach the user ID to the request so controllers can use it
