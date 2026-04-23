@@ -9,11 +9,10 @@ class Database {
 
     public static function getConnection() {
         if (self::$instance === null) {
-            // We will define these constants in config/database.php soon
             $config = require __DIR__ . '/../../config/database.php';
             
             try {
-                $dsn = "mysql:host={$config['host']};dbname={$config['db_name']};charset=utf8mb4";
+                $dsn = "pgsql:host={$config['host']};port={$config['port']};dbname={$config['db_name']}";
                 self::$instance = new PDO($dsn, $config['username'], $config['password'], [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

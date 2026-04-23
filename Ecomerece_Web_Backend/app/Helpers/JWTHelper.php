@@ -6,25 +6,26 @@ use Firebase\JWT\Key;
 use Exception;
 
 class JWTHelper {
-    // Make sure this matches your config/app.php secret!
-    private static $secret = 'your-super-secret-key-here'; 
+    private static function getSecret() {
+        return $_ENV['JWT_SECRET'] ?? 'fallback-secret-if-env-missing';
+    }
 
     public static function generateToken($userId) {
         $payload = [
             'iss' => "ShopLight",
             'iat' => time(),
-            'exp' => time() + (3600 * 24),
+            'exp' => time() + (3600 * 24), // 24 hours
             'sub' => $userId
         ];
 
-        // The library expects the string secret here
-        return JWT::encode($payload, self::$secret, 'HS256');
+        return JWT::encode($payload, self::getSecret(), 'HS256');
     }
 
     public static function decodeToken($token) {
         try {
-            // The Key class is used here to define the algorithm
-            return JWT::decode($token, new Key(self::$secret, 'HS256'));
+            // Remove 'Bearer ' prefix if present
+            $token = str_replace('Bearer ', '', $token);
+            return JWT::decode($token, new Key(self::getSecret(), 'HS256'));
         } catch (Exception $e) {
             return null; 
         }

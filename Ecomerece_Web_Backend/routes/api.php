@@ -1,32 +1,35 @@
 <?php
-use app\controllers\ProductController;
-use app\Controllers\AuthController;
-use App\Controllers\CartController;
+use App\Controllers\AuthController;
+use App\Controllers\ProductController;
+use App\Controllers\OrderController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\AdminMiddleware;
-use App\Controllers\OrderController;
-use App\Controllers\UserController;
-use App\Controllers\Admin\AdminProductController;
 
 // $router is available here from index.php
-//product handler
-$router->post('/api/login', [AuthController::class, 'login']);
-$router->post('/api/register', [AuthController::class, 'register']);
-$router->get('/api/products', [App\Controllers\ProductController::class, 'index']);
-$router->get('/api/product', [App\Controllers\ProductController::class, 'show']);
-// cart handler
-$router->middleware('/api/cart', AuthMiddleware::class);
-$router->get('/api/cart', [CartController::class, 'index']);
-$router->post('/api/cart', [CartController::class, 'store']);
-// order handler
-$router->middleware('/api/checkout', AuthMiddleware::class);
-$router->post('/api/checkout', [OrderController::class, 'checkout']);
-//admin
-$router->middleware('/api/admin/product', AuthMiddleware::class);
-$router->middleware('/api/admin/product', AdminMiddleware::class);
-$router->post('/api/admin/product', [AdminProductController::class, 'addProduct']);
-$router->put('/api/admin/product', [AdminProductController::class, 'update']);
-$router->delete('/api/admin/product', [AdminProductController::class, 'delete']);
-//user handler
-$router->middleware('/api/profile', AuthMiddleware::class);
-$router->get('/api/profile', [UserController::class, 'profile']);
+
+// 1. Authentication
+$router->post('/auth/register', [AuthController::class, 'register']);
+$router->post('/auth/login', [AuthController::class, 'login']);
+$router->get('/auth/me', [AuthController::class, 'me']);
+
+// 2. Products
+$router->get('/products', [ProductController::class, 'index']);
+$router->get('/products/([a-zA-Z0-9-]+)', [ProductController::class, 'show']); // Matches ID or Slug
+
+// 3. Reviews (Auth Required)
+// $router->middleware('/products/([a-zA-Z0-9-]+)/reviews', AuthMiddleware::class);
+// $router->post('/products/([a-zA-Z0-9-]+)/reviews', [ProductController::class, 'addReview']);
+
+// 4. Orders (Auth Required)
+// $router->middleware('/orders', AuthMiddleware::class);
+$router->post('/orders', [OrderController::class, 'create']);
+$router->get('/orders', [OrderController::class, 'index']);
+
+// 5. Admin Routes
+// $router->middleware('/orders/all', AdminMiddleware::class);
+$router->get('/orders/all', [OrderController::class, 'all']);
+
+// Admin Product Management
+$router->post('/products', [ProductController::class, 'store']);
+$router->patch('/products/([a-zA-Z0-9-]+)', [ProductController::class, 'update']);
+$router->delete('/products/([a-zA-Z0-9-]+)', [ProductController::class, 'delete']);

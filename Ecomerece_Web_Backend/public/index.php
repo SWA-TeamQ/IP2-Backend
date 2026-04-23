@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Core\Env;
+Env::load(__DIR__ . '/../.env');
+
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
