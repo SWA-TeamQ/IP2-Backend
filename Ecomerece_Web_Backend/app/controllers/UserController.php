@@ -5,14 +5,18 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\User;
 
-class UserController {
+class UserController extends Controller {
     public function profile(Request $request, Response $response) {
         $userModel = new User();
         $user = $userModel->find($request->userId);
-        
-        // Don't send the password back to React!
-        unset($user['password']);
-        
-        return $response->json($user);
+
+        if (!$user) {
+            return $this->error($response, 'User not found', 404);
+        }
+
+        // Don't send the password back!
+        unset($user['password_hash']);
+
+        return $this->success($response, $user);
     }
 }

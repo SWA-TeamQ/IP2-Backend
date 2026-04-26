@@ -5,7 +5,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Services\CartService;
 
-class CartController {
+class CartController extends Controller {
     private CartService $cartService;
 
     public function __construct() {
@@ -14,7 +14,7 @@ class CartController {
 
     public function index(Request $request, Response $response) {
         $items = $this->cartService->getItems($request->userId);
-        return $response->json($items);
+        return $this->success($response, $items);
     }
 
     public function store(Request $request, Response $response) {
@@ -23,10 +23,14 @@ class CartController {
         $quantity = $data['quantity'] ?? 1;
 
         if (!$productId) {
-            return $response->json(['error' => 'Product ID is required'], 400);
+            return $this->error($response, 'Product ID is required', 400);
         }
 
-        $this->cartService->addToCart($request->userId, $productId, $quantity);
-        return $response->json(['message' => 'Item added to cart']);
+        try {
+            $this->cartService->addToCart($request->userId, $productId, $quantity);
+            return $this->success($response, null, 'Item added to cart');
+        } catch (\Exception $e) {
+            return $this->error($response, $e->getMessage(), 500);
+        }
     }
 }
