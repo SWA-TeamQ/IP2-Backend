@@ -16,6 +16,10 @@ class Request {
         $scriptName = dirname($_SERVER['SCRIPT_NAME']);
         $path = str_replace($scriptName, '', $path);
 
+        if ($path === '' || $path === false) {
+            $path = '/';
+        }
+
         $position = strpos($path, '?');
         return $position === false ? $path : substr($path, 0, $position);
     }

@@ -4,6 +4,7 @@ namespace App\Core;
 class Router {
     protected array $routes = [];
     protected array $middlewares = [];
+    protected string $prefix = '';
     public Request $request;
     public Response $response;
 
@@ -12,29 +13,40 @@ class Router {
         $this->response = $response;
     }
 
+    public function setPrefix(string $prefix) {
+        $this->prefix = $prefix;
+    }
+
+    public function group(string $prefix, callable $callback) {
+        $oldPrefix = $this->prefix;
+        $this->prefix .= $prefix;
+        $callback($this);
+        $this->prefix = $oldPrefix;
+    }
+
     public function middleware($path, $middlewareClass) {
-        $this->middlewares[$path][] = $middlewareClass;
+        $this->middlewares[$this->prefix . $path][] = $middlewareClass;
     }
 
     public function get($path, $callback) {
-        $this->routes['get'][$path] = $callback;
+        $this->routes['get'][$this->prefix . $path] = $callback;
     }
 
     public function post($path, $callback) {
-        $this->routes['post'][$path] = $callback;
+        $this->routes['post'][$this->prefix . $path] = $callback;
     }
 
     public function patch($path, $callback) {
-        $this->routes['patch'][$path] = $callback;
+        $this->routes['patch'][$this->prefix . $path] = $callback;
     }
 
     public function delete($path, $callback) {
-        $this->routes['delete'][$path] = $callback;
+        $this->routes['delete'][$this->prefix . $path] = $callback;
     }
 
     public function resolve() {
         $path = $this->request->getPath();
-        $method = $this->request->getMethod();
+        $method = strtolower($this->request->getMethod());
         
         $callback = false;
         $params = [];
@@ -42,7 +54,7 @@ class Router {
         // 1. Check for exact match first
         if (isset($this->routes[$method][$path])) {
             $callback = $this->routes[$method][$path];
-        } else {
+        } elseif (isset($this->routes[$method])) {
             // 2. Check for regex matches
             foreach ($this->routes[$method] as $route => $handler) {
                 $routePattern = '#^' . $route . '$#';

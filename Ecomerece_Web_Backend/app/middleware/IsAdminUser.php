@@ -5,9 +5,9 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\User;
 
-class AdminMiddleware {
+class IsAdminUser {
     public function handle(Request $request, Response $response) {
-        // AuthMiddleware must run before this to set userId
+        // IsAuthenticated must run before this to set userId
         if (empty($request->userId)) {
             return $response->error('Unauthorized: Authentication required', 401);
         }

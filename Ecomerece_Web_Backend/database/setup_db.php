@@ -17,14 +17,6 @@ try {
         echo "Executed schema.sql\n";
     }
 
-    // 2. Run migrations if any
-    $migrations = glob(__DIR__ . '/migrations/*.sql');
-    foreach ($migrations as $file) {
-        $sql = file_get_contents($file);
-        $db->exec($sql);
-        echo "Executed migration: " . basename($file) . "\n";
-    }
-
     echo "Database setup complete!\n";
 } catch (Exception $e) {
     echo "Error during setup: " . $e->getMessage() . "\n";

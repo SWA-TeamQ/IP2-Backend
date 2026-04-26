@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Core\Response;
 use App\Services\ProductService;
+use App\Services\FileService;
 use App\Models\Order;
 use App\Models\Review;
 use App\Helpers\Validator;
@@ -45,7 +46,7 @@ class ProductController extends Controller {
     }
 
     public function addReview(Request $request, Response $response, $productId) {
-        $userId = $request->userId; // Set by AuthMiddleware
+        $userId = $request->userId; // Set by IsAuthenticated
         $data = $request->getBody();
 
         // 1. Validation

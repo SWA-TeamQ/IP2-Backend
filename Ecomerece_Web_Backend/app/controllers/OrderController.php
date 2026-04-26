@@ -15,7 +15,7 @@ class OrderController extends Controller {
 
     public function create(Request $request, Response $response) {
         $data = $request->getBody();
-        $userId = $request->userId; // From AuthMiddleware
+        $userId = $request->userId; // From IsAuthenticated
 
         $errors = Validator::validate($data, [
             'items' => 'required',

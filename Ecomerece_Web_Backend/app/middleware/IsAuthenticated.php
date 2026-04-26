@@ -5,7 +5,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Helpers\JWTHelper;
 
-class AuthMiddleware {
+class IsAuthenticated {
     public function handle(Request $request, Response $response) {
         $headers = getallheaders();
         // Handle both cases for key

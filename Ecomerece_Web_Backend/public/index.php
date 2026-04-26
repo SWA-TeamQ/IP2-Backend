@@ -19,6 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 $router = new Router(new Request(), new Response());
 
-require_once __DIR__ . '/../routes/api.php';
+$router->group('/api', function($router) {
+    require_once __DIR__ . '/../routes/api.php';
+});
+
+require_once __DIR__ . '/../routes/web.php';
 
 $router->resolve();
