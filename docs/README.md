@@ -18,5 +18,6 @@ Welcome to the ShopLight Backend documentation. This guide is designed to help t
 ## Quick Start for Developers
 The backend is a custom PHP framework built to be lightweight and modular.
 - **Entry Point**: `Ecomerece_Web_Backend/public/index.php`
-- **Routing**: Defined in `Ecomerece_Web_Backend/routes/api.php`
-- **Business Logic**: Located in `Ecomerece_Web_Backend/app/services/`
+- **Routing**: Defined in `Ecomerece_Web_Backend/routes/api.php`. All routes are prefixed with `/api`.
+- **Permissions**: Django-like middleware system for route protection.
+- **Error Handling**: Centralized global error handler (Express-like) in `public/index.php`.

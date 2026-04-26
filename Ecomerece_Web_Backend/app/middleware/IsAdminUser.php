@@ -3,19 +3,23 @@ namespace App\Middleware;
 
 use App\Core\Request;
 use App\Core\Response;
-use App\Models\User;
+use App\Repositories\UserRepository;
 
 class IsAdminUser {
+    private UserRepository $userRepo;
+
+    public function __construct() {
+        $this->userRepo = new UserRepository();
+    }
+
     public function handle(Request $request, Response $response) {
-        // IsAuthenticated must run before this to set userId
         if (empty($request->userId)) {
             return $response->error('Unauthorized: Authentication required', 401);
         }
 
-        $userModel = new User();
-        $user = $userModel->find($request->userId);
+        $user = $this->userRepo->find($request->userId);
 
-        if (!$user || $user['role'] !== 'admin') {
+        if (!$user || $user->getRole() !== 'admin') {
             return $response->error('Forbidden: Admin access required', 403);
         }
 

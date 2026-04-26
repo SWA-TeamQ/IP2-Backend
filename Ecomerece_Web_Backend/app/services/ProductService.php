@@ -1,32 +1,54 @@
 <?php
 namespace App\Services;
 
-use App\Models\Product;
+use App\Repositories\ProductRepository;
+use App\Repositories\ReviewRepository;
+use App\Entities\Product;
 
 class ProductService {
-    private Product $productModel;
+    private ProductRepository $productRepo;
+    private ReviewRepository $reviewRepo;
 
     public function __construct() {
-        $this->productModel = new Product();
+        $this->productRepo = new ProductRepository();
+        $this->reviewRepo = new ReviewRepository();
     }
 
-    public function getAllProducts($filters = []) {
-        return $this->productModel->getAll($filters);
+    public function getAllProducts(array $filters = []) {
+        $products = $this->productRepo->getAll($filters);
+        return array_map(fn($p) => $p->toArray(), $products);
     }
 
-    public function getProductByIdOrSlug($idOrSlug) {
-        return $this->productModel->findByIdOrSlug($idOrSlug);
+    public function getProductByIdOrSlug(string $idOrSlug) {
+        $product = $this->productRepo->findByIdOrSlug($idOrSlug);
+        if (!$product) return null;
+
+        $data = $product->toArray();
+        $reviews = $this->reviewRepo->findByProduct($product->getId());
+        $data['reviews'] = array_map(fn($r) => $r->toArray(), $reviews);
+
+        return $data;
     }
 
-    public function createProduct($data) {
-        return $this->productModel->create($data);
+    public function createProduct(array $data) {
+        $product = new Product($data);
+        if (empty($data['slug'])) {
+            // Re-generate slug if missing to ensure entity consistency
+            $data['slug'] = $this->generateSlug($data['name']);
+            $product = new Product($data);
+        }
+        return $this->productRepo->create($product);
     }
 
-    public function updateProduct($id, $data) {
-        return $this->productModel->update($id, $data);
+    public function updateProduct(string $id, array $data) {
+        return $this->productRepo->update($id, $data);
     }
 
-    public function deleteProduct($id) {
-        return $this->productModel->delete($id);
+    public function deleteProduct(string $id) {
+        return $this->productRepo->delete($id);
+    }
+
+    private function generateSlug($name) {
+        return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
     }
 }

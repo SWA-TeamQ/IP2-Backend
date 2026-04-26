@@ -26,11 +26,7 @@ class CartController extends Controller {
             return $this->error($response, 'Product ID is required', 400);
         }
 
-        try {
-            $this->cartService->addToCart($request->userId, $productId, $quantity);
-            return $this->success($response, null, 'Item added to cart');
-        } catch (\Exception $e) {
-            return $this->error($response, $e->getMessage(), 500);
-        }
+        $this->cartService->addToCart($request->userId, $productId, $quantity);
+        return $this->success($response, null, 'Item added to cart');
     }
 }

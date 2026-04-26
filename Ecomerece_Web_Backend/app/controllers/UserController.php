@@ -3,20 +3,22 @@ namespace App\Controllers;
 
 use App\Core\Request;
 use App\Core\Response;
-use App\Models\User;
+use App\Repositories\UserRepository;
 
 class UserController extends Controller {
+    private UserRepository $userRepo;
+
+    public function __construct() {
+        $this->userRepo = new UserRepository();
+    }
+
     public function profile(Request $request, Response $response) {
-        $userModel = new User();
-        $user = $userModel->find($request->userId);
+        $user = $this->userRepo->find($request->userId);
 
         if (!$user) {
             return $this->error($response, 'User not found', 404);
         }
 
-        // Don't send the password back!
-        unset($user['password_hash']);
-
-        return $this->success($response, $user);
+        return $this->success($response, $user->toArray());
     }
 }

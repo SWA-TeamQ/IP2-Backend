@@ -19,6 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 $router = new Router(new Request(), new Response());
 
+// Global Error Handler (Express-like)
+$router->setErrorHandler(function($e, $request, $response) {
+    // Log error here if needed
+    return $response->error($e->getMessage(), 500);
+});
+
 $router->group('/api', function($router) {
     require_once __DIR__ . '/../routes/api.php';
 });

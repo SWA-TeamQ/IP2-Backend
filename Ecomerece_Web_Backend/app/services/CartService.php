@@ -1,33 +1,31 @@
 <?php
 namespace App\Services;
 
-use App\Models\Cart;
+use App\Repositories\CartRepository;
 
 class CartService {
-    private Cart $cartModel;
+    private CartRepository $cartRepo;
 
     public function __construct() {
-        $this->cartModel = new Cart();
+        $this->cartRepo = new CartRepository();
     }
 
-    public function addToCart($userId, $productId, $quantity = 1) {
-        // Check if item already exists in user's cart
-        $existing = $this->cartModel->findInCart($userId, $productId);
+    public function addToCart(string $userId, string $productId, int $quantity = 1) {
+        $existing = $this->cartRepo->findInCart($userId, $productId);
 
         if ($existing) {
-            $newQuantity = $existing['quantity'] + $quantity;
-            return $this->cartModel->updateQuantity($existing['id'], $newQuantity);
+            $newQuantity = $existing->getQuantity() + $quantity;
+            return $this->cartRepo->updateQuantity($existing->getId(), $newQuantity);
         }
 
-        return $this->cartModel->add($userId, $productId, $quantity);
+        return $this->cartRepo->add($userId, $productId, $quantity);
     }
 
-    public function getItems($userId) {
-        return $this->cartModel->getByUser($userId);
+    public function getItems(string $userId) {
+        return $this->cartRepo->getByUser($userId);
     }
 
-    public function removeItem($cartId, $userId) {
-        // We pass userId to ensure people can't delete other people's cart items
-        return $this->cartModel->remove($cartId, $userId);
+    public function removeItem(int $cartId, string $userId) {
+        return $this->cartRepo->remove($cartId, $userId);
     }
 }

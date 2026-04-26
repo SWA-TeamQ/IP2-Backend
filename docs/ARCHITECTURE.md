@@ -5,25 +5,24 @@ The ShopLight Backend is built as a custom, lightweight PHP framework. It follow
 ## Directory Structure
 
 - `app/Core/`: The engine of the application. Contains the Router, Request, Response, and Database connection logic.
-- `app/controllers/`: Handles incoming HTTP requests, validates input, and returns responses.
-- `app/services/`: **The Brains.** All complex business logic (e.g., payment processing, complex filtering) resides here.
-- `app/models/`: Direct database interaction using PDO.
-- `app/middleware/`: Security and request pre-processing (Permissions, CORS).
-- `app/Helpers/`: Utility classes like `JWTHelper` and `Validator`.
-- `public/`: The only directory accessible to the web. Contains `index.php` (Front Controller).
-- `routes/`: Definitions for all API and Web routes.
+- `app/Entities/`: **Domain Models.** Pure PHP classes (POPOs) representing data structures (User, Product, Order, etc.) with no knowledge of the database.
+- `app/Repositories/`: **Data Access Layer.** Classes dedicated to reading and writing Entities to the database using SQL. Centralizes all database logic.
+- `app/controllers/`: Handles incoming HTTP requests and extracts data from the `Request` object.
+- `app/services/`: **Business Logic Layer.** Orchestrates Repositories and Entities to perform complex operations.
 
-## The Workflow of a Request
+## The Workflow of a Request (Refined)
 
-1. **Entry**: All requests hit `public/index.php`.
-2. **Bootstrapping**: Env variables are loaded, and the `Router` is initialized.
-3. **Routing**: The `Router` matches the URI against definitions in `routes/api.php`.
-4. **Middleware**: Before the controller runs, the Router executes any assigned Middleware (e.g., `IsAuthenticated`).
-5. **Controller**: The matched Controller method is called.
-6. **Service**: The Controller delegates heavy lifting to a Service.
-7. **Response**: The Controller returns a JSON response using the `Response` helper.
+1. **Entry**: Request hits `public/index.php`.
+2. **Routing**: `Router` matches URI and executes Middleware.
+3. **Controller**: Extracts input and calls a Service.
+4. **Service**:
+   - Creates an **Entity** object from the input.
+   - Calls a **Repository** to persist the Entity or fetch data.
+5. **Repository**: Executes SQL via PDO and returns Entities or raw arrays.
+6. **Response**: Controller returns JSON using `$this->success()` or `$this->error()`.
 
 ## Why this Structure?
-- **Surgical Updates**: You can change the database engine in `Core/Database.php` without touching your business logic.
-- **Testability**: Services can be tested independently of HTTP requests.
-- **Security**: By using a `public/` folder, sensitive files like `.env` and source code are never exposed to the web.
+- **Decoupling**: Business logic (Services) is separated from data storage (Repositories).
+- **Testability**: Entities and Services can be unit tested without a database connection (by mocking repositories).
+- **Maintainability**: All SQL for a specific concept (e.g., Products) is in one file (`ProductRepository.php`).
+
