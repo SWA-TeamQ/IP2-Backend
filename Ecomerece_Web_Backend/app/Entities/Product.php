@@ -54,6 +54,9 @@ class Product {
     public function getReviewCount(): int { return $this->reviewCount; }
 
     public function toArray(): array {
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/');
+        $images = array_map(fn($img) => strpos($img, 'http') === 0 ? $img : $baseUrl . $img, $this->images);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -61,7 +64,7 @@ class Product {
             'description' => $this->description,
             'priceCents' => $this->priceCents,
             'salePriceCents' => $this->salePriceCents,
-            'images' => $this->images,
+            'images' => $images,
             'category' => $this->category,
             'badge' => $this->badge,
             'attributes' => $this->attributes,
