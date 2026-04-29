@@ -1,0 +1,11 @@
+.git
+.env
+vendor/
+docker-compose.yml
+Dockerfile
+.dockerignore
+docs/
+README.md
+LICENSE
+.github/
+Ecomerece_Web_Backend/public/uploads/

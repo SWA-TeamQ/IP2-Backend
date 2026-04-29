@@ -3,7 +3,7 @@
 namespace App\Core;
 
 use PDO;
-use PDOException;
+use Exception;
 
 class Database
 {
@@ -12,27 +12,54 @@ class Database
     public static function getConnection(): PDO
     {
         if (self::$instance === null) {
-            try {
-                $dbUrl = parse_url($_ENV['DATABASE_URL']);
-
-                $driver   = "postgresql";
-                $host     = $dbUrl['host'];
-                $port     = $dbUrl['port'];
-                $dbName   = ltrim($dbUrl['path'], '/');
-                $username = $dbUrl['user'];
-                $password = $dbUrl['pass'];
-
-                $dsn = "$driver:host=$host;port=$port;dbname=$dbName;charset=utf8mb4";
-
-                self::$instance = new PDO($dsn, $username, $password, [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
-                ]);
-            } catch (\Throwable $e) {
-                error_log("Critical Database Error: " . $e->getMessage());
-                die("A connection error occurred. Please check system logs.");
+            // Fail fast: Check for required URL
+            $dbUrl = $_ENV['DATABASE_URL'] ?? null;
+            if (!$dbUrl) {
+                throw new Exception("DATABASE_URL environment variable is missing.");
             }
+
+            $parsed = parse_url($dbUrl);
+            if (!$parsed || !isset($parsed['host'], $parsed['path'], $parsed['user'], $parsed['pass'])) {
+                throw new Exception("DATABASE_URL is malformed.");
+            }
+
+            $host     = $parsed['host'];
+            $port     = $parsed['port'] ?? 5432;
+            $dbName   = ltrim($parsed['path'], '/');
+            $username = $parsed['user'];
+            $password = $parsed['pass'];
+
+            // Construct DSN
+            $dsn = "pgsql:host=$host;port=$port;dbname=$dbName";
+            
+            // Collect query parameters
+            $options = [];
+            if (isset($parsed['query'])) {
+                parse_str($parsed['query'], $queryParts);
+                
+                // Specifically extract 'options' to handle Neon SNI/Endpoint ID
+                if (isset($queryParts['options'])) {
+                    $options[] = "options=" . $queryParts['options'];
+                }
+                
+                // Add other supported params (like sslmode)
+                $supported = ['sslmode'];
+                foreach ($queryParts as $key => $value) {
+                    if (in_array($key, $supported)) {
+                        $options[] = "$key=$value";
+                    }
+                }
+            }
+
+            if (!empty($options)) {
+                $dsn .= ";" . implode(';', $options);
+            }
+
+            self::$instance = new PDO($dsn, $username, $password, [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ]);
         }
 
         return self::$instance;

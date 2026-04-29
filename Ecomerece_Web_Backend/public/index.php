@@ -21,7 +21,10 @@ $router = new Router(new Request(), new Response());
 
 // Global Error Handler (Express-like)
 $router->setErrorHandler(function($e, $request, $response) {
-    // Log error here if needed
+    // Debug: Check if DATABASE_URL exists
+    if (!isset($_ENV['DATABASE_URL'])) {
+        return $response->error("DATABASE_URL not found in _ENV. Current env keys: " . implode(', ', array_keys($_ENV)), 500);
+    }
     return $response->error($e->getMessage(), 500);
 });
 
