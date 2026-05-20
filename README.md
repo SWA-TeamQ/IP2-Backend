@@ -60,27 +60,25 @@ https://github.com/E-commerce-foundation/FrontEnd
 
 ## 🗄️ Database Design (Planned)
 
-The system will use a relational database (MySQL/MariaDB) with the following main tables:
+The system uses a relational database (PostgreSQL) with the following main tables:
 
 - users
 - products
-- carts
-- cart_items
+- cart
 - orders
 - order_items
-
+- reviews
 
 ## 🔐 Security Measures
 
 - Prepared statements to prevent SQL injection
 - Input validation and sanitization
-- Authentication using JWT or sessions
-
+- Authentication using JWT
 
 ## 🛠️ Tech Stack
 
 - **Language:** PHP 8.1+
-- **Database:** MySQL / MariaDB
-- **Authentication:** JWT (recommended) or Session-based
+- **Database:** PostgreSQL
+- **Authentication:** JWT
 - **API Style:** RESTful JSON
 
