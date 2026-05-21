@@ -7,7 +7,7 @@ use App\Middleware\IsAdminUser;
 use App\Middleware\IsAuthenticatedOrReadOnly;
 use App\Middleware\IsAdminOrReadOnly;
 use App\Middleware\AllowAny;
-use App\Controllers\CartController;
+use App\Controllers\ContactController;
 
 // 1. Health & Status
 $router->get('/health', function($request, $response) {
@@ -22,6 +22,9 @@ $router->get('/health', function($request, $response) {
         return $response->error('API is running but database connection failed', 500, ['error' => $e->getMessage()]);
     }
 });
+
+// Contact Form
+$router->post('/contact', [ContactController::class, 'store']);
 
 // 2. Authentication
 $router->post('/auth/register', [AuthController::class, 'register']);
@@ -62,6 +65,16 @@ $router->delete('/cart/([0-9]+)', [CartController::class, 'remove']);
 $router->middleware('/admin/stats', IsAuthenticated::class);
 $router->middleware('/admin/stats', IsAdminUser::class);
 $router->get('/admin/stats', [App\Controllers\Admin\AdminStatsController::class, 'index']);
+
+$router->middleware('/admin/orders', IsAuthenticated::class);
+$router->middleware('/admin/orders', IsAdminUser::class);
+$router->get('/admin/orders', [App\Controllers\Admin\AdminOrderController::class, 'index']);
+$router->patch('/admin/orders/([0-9]+)', [App\Controllers\Admin\AdminOrderController::class, 'updateStatus']);
+
+$router->middleware('/admin/reviews', IsAuthenticated::class);
+$router->middleware('/admin/reviews', IsAdminUser::class);
+$router->get('/admin/reviews', [App\Controllers\Admin\AdminReviewController::class, 'index']);
+$router->delete('/admin/reviews/([0-9]+)', [App\Controllers\Admin\AdminReviewController::class, 'delete']);
 
 $router->middleware('/orders/all', IsAuthenticated::class);
 $router->middleware('/orders/all', IsAdminUser::class);

@@ -26,11 +26,15 @@ class OrderService {
         return array_map(fn($o) => $o->toArray(), $orders);
     }
 
-    public function hasUserPurchasedProduct(string $userId, string $productId) {
-        return $this->orderRepo->hasUserPurchasedProduct($userId, $productId);
+    public function getAdminOrders(int $limit = 10, int $offset = 0) {
+        return $this->orderRepo->getAllOrdersWithUsers($limit, $offset);
     }
 
-    public function updateStatus(string $id, string $status) {
-        return $this->orderRepo->updateStatus($id, $status);
+    public function updateOrderStatus(string $id, string $status) {
+        return $this->orderRepo->updateOrderStatus($id, $status);
+    }
+
+    public function hasUserPurchasedProduct(string $userId, string $productId) {
+        return $this->orderRepo->hasUserPurchasedProduct($userId, $productId);
     }
 }

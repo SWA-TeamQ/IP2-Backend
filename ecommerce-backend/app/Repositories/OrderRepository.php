@@ -69,9 +69,22 @@ class OrderRepository extends BaseRepository {
         return $stmt->fetchColumn() > 0;
     }
 
-    public function updateStatus(string $id, string $status): bool {
-        $sql = "UPDATE orders SET status = :status WHERE id = :id";
-        $stmt = $this->query($sql, ['status' => $status, 'id' => $id]);
+    public function getAllOrdersWithUsers(int $limit = 10, int $offset = 0): array {
+        $sql = "SELECT o.*, u.first_name, u.last_name, u.email 
+                FROM orders o 
+                JOIN users u ON o.user_id = u.id 
+                ORDER BY o.created_at DESC 
+                LIMIT :limit OFFSET :offset";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updateOrderStatus(string $orderId, string $status): bool {
+        $sql = "UPDATE orders SET status = :status WHERE id = :order_id";
+        $stmt = $this->query($sql, ['status' => $status, 'order_id' => $orderId]);
         return $stmt->rowCount() > 0;
     }
 }

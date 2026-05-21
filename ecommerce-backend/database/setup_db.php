@@ -9,12 +9,15 @@ Env::load(__DIR__ . '/../.env');
 try {
     $db = Database::getConnection();
     
-    // 1. Run the main schema
-    $schemaFile = __DIR__ . '/schema.sql';
-    if (file_exists($schemaFile)) {
-        $sql = file_get_contents($schemaFile);
+    // 1. Run all migration files
+    $migrationsPath = __DIR__ . '/migrations';
+    $migrationFiles = glob($migrationsPath . '/*.sql');
+    sort($migrationFiles); // Ensure migrations run in order
+
+    foreach ($migrationFiles as $migrationFile) {
+        $sql = file_get_contents($migrationFile);
         $db->exec($sql);
-        echo "Executed schema.sql\n";
+        echo "Executed migration: " . basename($migrationFile) . "\n";
     }
 
     echo "Database setup complete!\n";

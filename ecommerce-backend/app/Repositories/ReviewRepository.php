@@ -43,6 +43,20 @@ class ReviewRepository extends BaseRepository {
         return $reviewId;
     }
 
+    public function getAllReviewsWithDetails(int $limit = 10, int $offset = 0): array {
+        $sql = "SELECT r.*, u.first_name, u.last_name, p.name as product_name 
+                FROM reviews r 
+                JOIN users u ON r.user_id = u.id 
+                JOIN products p ON r.product_id = p.id 
+                ORDER BY r.created_at DESC 
+                LIMIT :limit OFFSET :offset";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function delete(string $id): void {
         $this->query("DELETE FROM reviews WHERE id = :id", ['id' => $id]);
     }
