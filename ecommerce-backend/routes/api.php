@@ -9,7 +9,21 @@ use App\Middleware\IsAdminOrReadOnly;
 use App\Middleware\AllowAny;
 use App\Controllers\CartController;
 
-// 1. Authentication
+// 1. Health & Status
+$router->get('/health', function($request, $response) {
+    try {
+        $db = \App\Core\Database::getConnection();
+        $db->query("SELECT 1");
+        return $response->success([
+            'database' => 'connected',
+            'timestamp' => date('c')
+        ], 'API is healthy');
+    } catch (\Exception $e) {
+        return $response->error('API is running but database connection failed', 500, ['error' => $e->getMessage()]);
+    }
+});
+
+// 2. Authentication
 $router->post('/auth/register', [AuthController::class, 'register']);
 $router->post('/auth/login', [AuthController::class, 'login']);
 

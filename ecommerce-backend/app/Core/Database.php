@@ -34,11 +34,20 @@ class Database
             
             // Collect options
             $options = [];
+            
+            // Automatically handle Neon's endpoint ID requirement if not using SNI
+            if (strpos($host, '.neon.tech') !== false) {
+                $endpointId = explode('.', $host)[0]; // Extracts 'ep-...'
+                
+                // Workaround D: Append endpoint ID to password for older libpq clients
+                $password = "endpoint={$endpointId};{$password}";
+            }
+
             if (isset($parsed['query'])) {
                 parse_str($parsed['query'], $queryParts);
                 
-                // Handle Neon endpoint correctly
-                if (isset($queryParts['options'])) {
+                // Handle manually provided Neon endpoint options
+                if (isset($queryParts['options']) && empty($options)) {
                     $options[] = $queryParts['options'];
                 }
                 
