@@ -25,7 +25,19 @@ class ProductService {
 
         $data = $product->toArray();
         $reviews = $this->reviewRepo->findByProduct($product->getId());
-        $data['reviews'] = array_map(fn($r) => $r->toArray(), $reviews);
+        $data['reviews'] = array_map(fn($r) => [
+            'id' => $r['id'] ?? null,
+            'productId' => $r['product_id'] ?? null,
+            'userId' => $r['user_id'] ?? null,
+            'rating' => (int)($r['rating'] ?? 0),
+            'comment' => $r['comment'] ?? '',
+            'createdAt' => $r['created_at'] ?? null,
+            'user' => [
+                'firstName' => $r['first_name'] ?? null,
+                'lastName' => $r['last_name'] ?? null,
+                'avatarUrl' => $r['avatar_url'] ?? null
+            ]
+        ], $reviews);
 
         return $data;
     }

@@ -29,4 +29,23 @@ abstract class BaseRepository {
         }
         return '{' . implode(',', $result) . '}';
     }
+
+    protected function fromPostgresArray(?string $postgresArray): array {
+        if (!$postgresArray || $postgresArray === '{}') {
+            return [];
+        }
+        $trimmed = trim($postgresArray, '{}');
+        if ($trimmed === '') return [];
+        
+        preg_match_all('/"(?:[^"\\\\]|\\\\.)*"|[^,]+/', $trimmed, $matches);
+        
+        return array_map(function($val) {
+            $val = trim($val);
+            if (strpos($val, '"') === 0 && substr($val, -1) === '"') {
+                $val = substr($val, 1, -1);
+                $val = stripcslashes($val);
+            }
+            return $val;
+        }, $matches[0]);
+    }
 }

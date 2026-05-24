@@ -15,7 +15,7 @@ class CartService {
 
         if ($existing) {
             $newQuantity = $existing->getQuantity() + $quantity;
-            return $this->cartRepo->updateQuantity($existing->getId(), $newQuantity);
+            return $this->cartRepo->updateQuantity($existing->getId(), $userId, $newQuantity);
         }
 
         return $this->cartRepo->add($userId, $productId, $quantity);
@@ -23,6 +23,10 @@ class CartService {
 
     public function getItems(string $userId) {
         return $this->cartRepo->getByUser($userId);
+    }
+
+    public function updateItemQuantity(string $userId, int $cartId, int $quantity) {
+        return $this->cartRepo->updateQuantity($cartId, $userId, $quantity);
     }
 
     public function removeItem(int $cartId, string $userId) {

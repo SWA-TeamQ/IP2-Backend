@@ -2,7 +2,7 @@
 namespace App\Core;
 
 class Request {
-    public ?int $userId = null;
+    public ?string $userId = null;
 
     public function getMethod() {
         return strtoupper($_SERVER['REQUEST_METHOD']);

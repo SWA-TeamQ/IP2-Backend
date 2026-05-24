@@ -35,14 +35,32 @@ class ProductRepository extends BaseRepository {
         $stmt = $this->query($sql, $params);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+        foreach ($results as &$data) {
+            $data['images'] = $this->fromPostgresArray($data['images'] ?? null);
+            $data['features'] = $this->fromPostgresArray($data['features'] ?? null);
+            $data['highlights'] = $this->fromPostgresArray($data['highlights'] ?? null);
+        }
+        
         return array_map(fn($data) => new Product($data), $results);
     }
 
     public function findByIdOrSlug(string $idOrSlug): ?Product {
-        $sql = "SELECT * FROM products WHERE id::text = :val OR slug = :val";
-        $stmt = $this->query($sql, ['val' => $idOrSlug]);
+        $sql = "SELECT * FROM products WHERE id = :id OR slug = :slug LIMIT 1";
+        $isUuid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $idOrSlug);
+        
+        $stmt = $this->query($sql, [
+            'id' => $isUuid ? $idOrSlug : '00000000-0000-0000-0000-000000000000',
+            'slug' => $idOrSlug
+        ]);
+        
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $data ? new Product($data) : null;
+        if ($data) {
+            $data['images'] = $this->fromPostgresArray($data['images'] ?? null);
+            $data['features'] = $this->fromPostgresArray($data['features'] ?? null);
+            $data['highlights'] = $this->fromPostgresArray($data['highlights'] ?? null);
+            return new Product($data);
+        }
+        return null;
     }
 
     public function create(Product $product): string {

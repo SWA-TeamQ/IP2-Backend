@@ -38,8 +38,8 @@ class CartController extends Controller {
             return $this->error($response, 'Valid quantity is required', 400);
         }
 
-        $this->cartService->addToCart($request->userId, $id, $quantity - 1); 
-        return $this->error($response, 'Update not implemented yet', 501);
+        $this->cartService->updateItemQuantity($request->userId, (int)$id, (int)$quantity); 
+        return $this->success($response, null, 'Cart updated successfully');
     }
 
     public function remove(Request $request, Response $response, $id) {

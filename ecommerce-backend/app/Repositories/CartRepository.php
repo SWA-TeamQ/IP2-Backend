@@ -17,9 +17,9 @@ class CartRepository extends BaseRepository {
         $this->query($sql, ['user_id' => $userId, 'product_id' => $productId, 'quantity' => $quantity]);
     }
 
-    public function updateQuantity(int $cartId, int $quantity): void {
-        $sql = "UPDATE cart SET quantity = :quantity WHERE id = :id";
-        $this->query($sql, ['quantity' => $quantity, 'id' => $cartId]);
+    public function updateQuantity(int $cartId, string $userId, int $quantity): void {
+        $sql = "UPDATE cart SET quantity = :quantity WHERE id = :id AND user_id = :user_id";
+        $this->query($sql, ['quantity' => $quantity, 'id' => $cartId, 'user_id' => $userId]);
     }
 
     public function getByUser(string $userId): array {

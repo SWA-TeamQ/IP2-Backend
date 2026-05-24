@@ -5,7 +5,7 @@ class Validator {
     public static function validate($data, $rules) {
         $errors = [];
         foreach ($rules as $field => $rule) {
-            if ($rule === 'required' && empty($data[$field])) {
+            if ($rule === 'required' && (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null)) {
                 $errors[] = "$field is required";
             }
             if ($rule === 'email' && !empty($data[$field]) && !filter_var($data[$field], FILTER_VALIDATE_EMAIL)) {

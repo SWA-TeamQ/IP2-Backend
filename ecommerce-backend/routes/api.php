@@ -56,6 +56,7 @@ $router->get('/orders', [OrderController::class, 'index']);
 $router->middleware('/cart', IsAuthenticated::class);
 $router->get('/cart', [CartController::class, 'index']);
 $router->post('/cart', [CartController::class, 'store']);
+$router->patch('/cart/([0-9]+)', [CartController::class, 'update']);
 $router->delete('/cart/([0-9]+)', [CartController::class, 'remove']);
 
 // 5. Admin Specific Routes

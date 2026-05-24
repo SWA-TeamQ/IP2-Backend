@@ -45,7 +45,7 @@ class OrderRepository extends BaseRepository {
             'order_id' => $orderId,
             'product_id' => $item['productId'],
             'quantity' => $item['quantity'],
-            'price_cents' => $item['price']
+            'price_cents' => (int)($item['price'] * 100)
         ]);
     }
 
