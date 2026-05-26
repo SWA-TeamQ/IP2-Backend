@@ -76,3 +76,12 @@ CREATE TABLE IF NOT EXISTS order_items (
     price_cents INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- 6. Favorites table
+CREATE TABLE IF NOT EXISTS favorites (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, product_id)
+);

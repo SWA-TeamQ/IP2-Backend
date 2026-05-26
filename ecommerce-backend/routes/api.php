@@ -15,8 +15,11 @@ $router->get('/health', function($request, $response) {
         $db = \App\Core\Database::getConnection();
         $db->query("SELECT 1");
         return $response->success([
+            'status' => 'UP',
             'database' => 'connected',
-            'timestamp' => date('c')
+            'timestamp' => date('c'),
+            'php_version' => PHP_VERSION,
+            'os' => PHP_OS
         ], 'API is healthy');
     } catch (\Exception $e) {
         return $response->error('API is running but database connection failed', 500, ['error' => $e->getMessage()]);
@@ -29,6 +32,13 @@ $router->post('/auth/login', [AuthController::class, 'login']);
 
 $router->middleware('/auth/me', IsAuthenticated::class);
 $router->get('/auth/me', [AuthController::class, 'me']);
+
+// Favorites Routes
+$router->middleware('/favorites', IsAuthenticated::class);
+$router->get('/favorites', [\App\Controllers\FavoriteController::class, 'index']);
+
+$router->middleware('/favorites/([a-zA-Z0-9-]+)', IsAuthenticated::class);
+$router->post('/favorites/([a-zA-Z0-9-]+)', [\App\Controllers\FavoriteController::class, 'toggle']);
 
 // 2. Products
 // Public Read, Admin Write
