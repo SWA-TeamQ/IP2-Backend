@@ -13,7 +13,7 @@ class Database
     {
         if (self::$instance === null) {
             // Fail fast: Check for required URL
-            $dbUrl = $_ENV['DATABASE_URL'] ?? null;
+            $dbUrl = getenv('DATABASE_URL');
             if (!$dbUrl) {
                 throw new Exception("DATABASE_URL environment variable is missing.");
             }

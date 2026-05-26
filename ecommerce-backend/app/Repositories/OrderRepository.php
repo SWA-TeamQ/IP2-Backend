@@ -47,6 +47,13 @@ class OrderRepository extends BaseRepository {
             'quantity' => $item['quantity'],
             'price_cents' => (int)($item['price'] * 100)
         ]);
+
+        // Decrement stock
+        $updateStockSql = "UPDATE products SET stock_quantity = stock_quantity - :quantity WHERE id = :product_id";
+        $this->query($updateStockSql, [
+            'quantity' => $item['quantity'],
+            'product_id' => $item['productId']
+        ]);
     }
 
     public function findByUser(string $userId): array {
