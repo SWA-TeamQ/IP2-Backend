@@ -7,9 +7,7 @@ use App\Helpers\JWTHelper;
 
 class IsAuthenticated {
     public function handle(Request $request, Response $response) {
-        $headers = getallheaders();
-        // Handle both cases for key
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        $authHeader = $request->getHeader('Authorization');
 
         if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
             return $response->error('Unauthorized: No token provided', 401);

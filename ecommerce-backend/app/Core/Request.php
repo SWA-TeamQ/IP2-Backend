@@ -35,6 +35,11 @@ class Request {
             $path = '/';
         }
         
+        // Trim trailing slash (unless it's just /)
+        if ($path !== '/' && substr($path, -1) === '/') {
+            $path = rtrim($path, '/');
+        }
+
         // Ensure path starts with /
         if ($path[0] !== '/') {
             $path = '/' . $path;
@@ -75,8 +80,22 @@ class Request {
     }
 
     public function getHeader($name) {
-        $headers = getallheaders();
-        return $headers[$name] ?? $headers[strtolower($name)] ?? null;
+        $headers = $this->getHeaders();
+        return $headers[$name] ?? $headers[strtolower($name)] ?? $headers[str_replace('-', '_', strtolower($name))] ?? null;
+    }
+
+    public function getHeaders() {
+        if (function_exists('getallheaders')) {
+            return getallheaders();
+        }
+
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
     }
 
     public function getFiles() {

@@ -9,7 +9,9 @@ class PaymentService {
         // In a real app, you'd call Stripe/PayPal API here.
         // For now, we simulate a successful transaction if card details are provided.
         
-        if (empty($paymentDetails['card_number']) || strlen($paymentDetails['card_number']) < 16) {
+        $cardNumber = $paymentDetails['cardNumber'] ?? $paymentDetails['card_number'] ?? '';
+
+        if (empty($cardNumber) || strlen($cardNumber) < 16) {
             return [
                 'status' => 'failed',
                 'message' => 'Invalid card number'

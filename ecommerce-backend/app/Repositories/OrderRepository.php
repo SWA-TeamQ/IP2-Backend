@@ -41,11 +41,14 @@ class OrderRepository extends BaseRepository {
     private function addItem(string $orderId, array $item): void {
         $sql = "INSERT INTO order_items (order_id, product_id, quantity, price_cents) 
                 VALUES (:order_id, :product_id, :quantity, :price_cents)";
+        
+        $priceCents = $item['unitPriceCents'] ?? $item['unit_price_cents'] ?? (isset($item['price']) ? (int)($item['price'] * 100) : 0);
+
         $this->query($sql, [
             'order_id' => $orderId,
             'product_id' => $item['productId'],
             'quantity' => $item['quantity'],
-            'price_cents' => (int)($item['price'] * 100)
+            'price_cents' => $priceCents
         ]);
 
         // Decrement stock
