@@ -1,7 +1,9 @@
 <?php
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Env;
+
 Env::load(__DIR__ . '/../.env');
 
 use App\Core\Request;
@@ -21,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 $router = new Router(new Request(), new Response());
 
 // Global Error Handler (Express-like)
-$router->setErrorHandler(function($e, $request, $response) {
+$router->setErrorHandler(function ($e, $request, $response) {
     // Debug: Check if DATABASE_URL exists
     if (!isset($_ENV['DATABASE_URL'])) {
         return $response->error("DATABASE_URL not found in _ENV. Current env keys: " . implode(', ', array_keys($_ENV)), 500);
@@ -29,10 +31,11 @@ $router->setErrorHandler(function($e, $request, $response) {
     return $response->error($e->getMessage(), 500);
 });
 
-$router->group('/api', function($router) {
-    require_once __DIR__ . '/../routes/api.php';
+$router->group('/api', function ($router) {
+    require __DIR__ . '/../routes/api.php';
 });
 
 require_once __DIR__ . '/../routes/web.php';
 
 $router->resolve();
+

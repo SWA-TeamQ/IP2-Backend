@@ -1,4 +1,5 @@
 <?php
+
 use App\Controllers\AuthController;
 use App\Controllers\ProductController;
 use App\Controllers\OrderController;
@@ -10,7 +11,8 @@ use App\Middleware\AllowAny;
 use App\Controllers\CartController;
 
 // 1. Health & Status
-$router->get('/health', function($request, $response) {
+$router->get('/health', function ($request, $response) {
+    echo "Api file working";
     try {
         $db = \App\Core\Database::getConnection();
         $db->query("SELECT 1");
@@ -81,3 +83,4 @@ $router->get('/orders/all', [OrderController::class, 'all']);
 $router->middleware('/orders/([a-zA-Z0-9-]+)/status', IsAuthenticated::class);
 $router->middleware('/orders/([a-zA-Z0-9-]+)/status', IsAdminUser::class);
 $router->patch('/orders/([a-zA-Z0-9-]+)/status', [OrderController::class, 'updateStatus']);
+

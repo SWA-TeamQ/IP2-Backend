@@ -31,26 +31,26 @@ class Database
 
             // Construct DSN
             $dsn = "pgsql:host=$host;port=$port;dbname=$dbName";
-            
+
             // Collect options
             $options = [];
-            
+
             // Automatically handle Neon's endpoint ID requirement if not using SNI
             if (strpos($host, '.neon.tech') !== false) {
-                $endpointId = explode('.', $host)[0]; // Extracts 'ep-...'
-                
+                //$endpointId = explode('.', $host)[0]; // Extracts 'ep-...'
+
                 // Workaround D: Append endpoint ID to password for older libpq clients
-                $password = "endpoint={$endpointId};{$password}";
+                //$password = "endpoint={$endpointId} {$password}";
             }
 
             if (isset($parsed['query'])) {
                 parse_str($parsed['query'], $queryParts);
-                
+
                 // Handle manually provided Neon endpoint options
                 if (isset($queryParts['options']) && empty($options)) {
                     $options[] = $queryParts['options'];
                 }
-                
+
                 // Keep sslmode as a DSN parameter
                 if (isset($queryParts['sslmode'])) {
                     $dsn .= ";sslmode=" . $queryParts['sslmode'];

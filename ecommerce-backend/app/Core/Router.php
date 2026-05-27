@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Core;
 
-class Router {
+class Router
+{
     protected array $routes = [];
     protected array $middlewares = [];
     protected string $prefix = '';
@@ -9,51 +11,62 @@ class Router {
     public Request $request;
     public Response $response;
 
-    public function __construct(Request $request, Response $response) {
+    public function __construct(Request $request, Response $response)
+    {
         $this->request = $request;
         $this->response = $response;
     }
 
-    public function setErrorHandler(callable $handler) {
+    public function setErrorHandler(callable $handler)
+    {
         $this->errorHandler = $handler;
     }
 
-    public function setPrefix(string $prefix) {
+    public function setPrefix(string $prefix)
+    {
         $this->prefix = $prefix;
     }
 
-    public function group(string $prefix, callable $callback) {
+    public function group(string $prefix, callable $callback)
+    {
         $oldPrefix = $this->prefix;
         $this->prefix .= $prefix;
         $callback($this);
         $this->prefix = $oldPrefix;
     }
 
-    public function middleware($path, $middlewareClass) {
+    public function middleware($path, $middlewareClass)
+    {
         $this->middlewares[$this->prefix . $path][] = $middlewareClass;
     }
 
-    public function get($path, $callback) {
+    public function get($path, $callback)
+    {
+        echo "lksdjfldskfj";
         $this->routes['get'][$this->prefix . $path] = $callback;
     }
 
-    public function post($path, $callback) {
+    public function post($path, $callback)
+    {
         $this->routes['post'][$this->prefix . $path] = $callback;
     }
 
-    public function patch($path, $callback) {
+    public function patch($path, $callback)
+    {
         $this->routes['patch'][$this->prefix . $path] = $callback;
     }
 
-    public function delete($path, $callback) {
+    public function delete($path, $callback)
+    {
         $this->routes['delete'][$this->prefix . $path] = $callback;
     }
 
-    public function resolve() {
+    public function resolve()
+    {
         try {
             $path = $this->request->getPath();
             $method = strtolower($this->request->getMethod());
-            
+
             $callback = false;
             $params = [];
 
@@ -84,7 +97,9 @@ class Router {
                     foreach ($classes as $middlewareClass) {
                         $m = new $middlewareClass();
                         $result = $m->handle($this->request, $this->response);
-                        if ($result !== true) return; 
+                        if ($result !== true) {
+                            return;
+                        }
                     }
                 }
             }
@@ -106,3 +121,4 @@ class Router {
         }
     }
 }
+

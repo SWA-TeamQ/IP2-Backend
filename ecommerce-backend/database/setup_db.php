@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Env;
@@ -12,7 +13,7 @@ if (!isset($_ENV['DATABASE_URL'])) {
 
 try {
     $db = Database::getConnection();
-    
+
     // 1. Run the main schema
     $schemaFile = __DIR__ . '/schema.sql';
     if (file_exists($schemaFile)) {
@@ -29,3 +30,4 @@ try {
 } catch (Exception $e) {
     echo "Error during setup: " . $e->getMessage() . "\n";
 }
+
