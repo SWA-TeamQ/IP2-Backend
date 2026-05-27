@@ -11,17 +11,36 @@ class Request {
     public function getPath() {
         $path = $_SERVER['REQUEST_URI'] ?? '/';
         
-        // Remove project subdirectory if present (common in XAMPP)
-        // Adjust this if your project is in a different subfolder
-        $scriptName = dirname($_SERVER['SCRIPT_NAME']);
-        $path = str_replace($scriptName, '', $path);
+        // Remove query string
+        $position = strpos($path, '?');
+        if ($position !== false) {
+            $path = substr($path, 0, $position);
+        }
+
+        // Handle project subdirectories (XAMPP/WAMP/MAMP or PHP built-in server)
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $baseDir = dirname($scriptName);
+        
+        // Normalize slashes for comparison
+        $path = str_replace('\\', '/', $path);
+        $baseDir = str_replace('\\', '/', $baseDir);
+
+        if ($baseDir !== '/' && $baseDir !== '.' && $baseDir !== '') {
+            if (strpos($path, $baseDir) === 0) {
+                $path = substr($path, strlen($baseDir));
+            }
+        }
 
         if ($path === '' || $path === false) {
             $path = '/';
         }
+        
+        // Ensure path starts with /
+        if ($path[0] !== '/') {
+            $path = '/' . $path;
+        }
 
-        $position = strpos($path, '?');
-        return $position === false ? $path : substr($path, 0, $position);
+        return $path;
     }
 
     public function getQueryParams() {
