@@ -68,16 +68,19 @@ class Router
 
             $callback = false;
             $params = [];
+            $matchedRouteKey = null;
 
             // 1. Check for exact match first
             if (isset($this->routes[$method][$path])) {
                 $callback = $this->routes[$method][$path];
+                $matchedRouteKey = $path;
             } elseif (isset($this->routes[$method])) {
                 // 2. Check for regex matches
                 foreach ($this->routes[$method] as $route => $handler) {
                     $routePattern = '#^' . $route . '$#';
                     if (preg_match($routePattern, $path, $matches)) {
                         $callback = $handler;
+                        $matchedRouteKey = $route;
                         array_shift($matches); // Remove the full match
                         $params = $matches;
                         break;
@@ -89,10 +92,12 @@ class Router
                 return $this->response->error('Route not found', 404);
             }
 
-            // 3. Handle Middlewares
+// 3. Handle Middlewares (Fixed with dynamic pattern-matching evaluation)
             foreach ($this->middlewares as $middlewarePath => $classes) {
+                // If the current URL path matches the middleware definition pattern...
                 $middlewarePattern = '#^' . $middlewarePath . '$#';
-                if (preg_match($middlewarePattern, $path)) {
+                
+                if (preg_match($middlewarePattern, $path) || $middlewarePath === $matchedRouteKey) {
                     foreach ($classes as $middlewareClass) {
                         $m = new $middlewareClass();
                         $result = $m->handle($this->request, $this->response);
@@ -111,6 +116,7 @@ class Router
             }
 
             return call_user_func_array($callback, array_merge([$this->request, $this->response], $params));
+
         } catch (\Throwable $e) {
             if ($this->errorHandler) {
                 return call_user_func($this->errorHandler, $e, $this->request, $this->response);
