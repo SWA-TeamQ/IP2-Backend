@@ -12,7 +12,6 @@ use App\Controllers\CartController;
 
 // 1. Health & Status
 $router->get('/health', function ($request, $response) {
-    echo "Api file working";
     try {
         $db = \App\Core\Database::getConnection();
         $db->query("SELECT 1");

@@ -42,7 +42,6 @@ class Router
 
     public function get($path, $callback)
     {
-        echo "lksdjfldskfj";
         $this->routes['get'][$this->prefix . $path] = $callback;
     }
 
